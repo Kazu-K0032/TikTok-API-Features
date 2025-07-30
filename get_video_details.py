@@ -8,7 +8,8 @@ def get_video_details(access_token, video_id):
             "video_id": video_id,
             "fields": [
                 "id","title","duration","view_count","like_count",
-                "comment_count","share_count","embed_link","cover_image_url"
+                "comment_count","share_count","embed_link","cover_image_url",
+                "height","width","created_time"
             ]
         }
     )

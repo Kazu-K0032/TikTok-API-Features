@@ -1,7 +1,7 @@
 import requests
 
 def get_user_profile(access_token):
-    # user.info.basic スコープで取得可能な基本情報のみ
+    # user.info.basic スコープで取得可能な基本情報のみ（確実に動作するフィールドのみ）
     fields = "open_id,display_name,avatar_url"
     
     resp = requests.get(

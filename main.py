@@ -211,6 +211,7 @@ def dashboard():
         stats = get_user_stats(token, open_id)
         # プロフィール情報に統計情報をマージ
         profile.update(stats)
+        print(f"Stats successfully retrieved: {stats}")
     except Exception as e:
         print(f"Stats API Error: {e}")
         # 統計情報が取得できない場合はデフォルト値を設定
@@ -220,6 +221,7 @@ def dashboard():
             "video_count": "N/A",
             "likes_count": "N/A"
         })
+        print("Using default N/A values for stats")
     
     videos = get_video_list(token, open_id, max_count=20)
 
@@ -234,12 +236,16 @@ def dashboard():
       <li>動画数：{{ profile.video_count }}</li>
       <li>いいね数：{{ profile.likes_count }}</li>
     </ul>
+    <p><small>※ 統計情報（フォロワー数など）を取得するには user.info.stats スコープが必要です</small></p>
 
     <h1>投稿動画一覧</h1>
     {% for v in videos %}
       <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
-        <p>ID: {{ v.id }} / タイトル: {{ v.title or 'タイトルなし' }}</p>
-        <p><a href="{{ url_for('video_detail', video_id=v.id) }}">詳細を見る</a></p>
+        <div>
+          <p><strong>ID:</strong> {{ v.id }} / <strong>タイトル:</strong> {{ v.title or 'タイトルなし' }}</p>
+          <p><strong>再生時間:</strong> {{ v.duration }}秒 / <strong>再生数:</strong> {{ v.view_count }} / <strong>いいね:</strong> {{ v.like_count }}</p>
+          <p><a href="{{ url_for('video_detail', video_id=v.id) }}">詳細を見る</a></p>
+        </div>
       </div>
     {% else %}
       <p>動画が見つかりませんでした。</p>
@@ -260,17 +266,33 @@ def video_detail(video_id):
 
     return render_template_string("""
     <h1>動画詳細情報</h1>
-    <ul>
-      <li>ID: {{ d.id }}</li>
-      <li>タイトル: {{ d.title }}</li>
-      <li>再生時間: {{ d.duration }} 秒</li>
-      <li>再生数: {{ d.view_count }}</li>
-      <li>いいね数: {{ d.like_count }}</li>
-      <li>コメント数: {{ d.comment_count }}</li>
-      <li>シェア数: {{ d.share_count }}</li>
-    </ul>
-    <p><a href="{{ d.embed_link }}" target="_blank">▶ 動画を開く</a></p>
-    <p><a href="{{ url_for('dashboard') }}">← ダッシュボードへ戻る</a></p>
+    <div style="display:flex; gap:20px;">
+      <div style="flex:1;">
+        <ul>
+          <li><strong>ID:</strong> {{ d.id }}</li>
+          <li><strong>タイトル:</strong> {{ d.title or 'タイトルなし' }}</li>
+          <li><strong>再生時間:</strong> {{ d.duration }} 秒</li>
+          <li><strong>再生数:</strong> {{ d.view_count }}</li>
+          <li><strong>いいね数:</strong> {{ d.like_count }}</li>
+          <li><strong>コメント数:</strong> {{ d.comment_count }}</li>
+          <li><strong>シェア数:</strong> {{ d.share_count }}</li>
+          {% if d.width and d.height %}
+            <li><strong>解像度:</strong> {{ d.width }}×{{ d.height }}</li>
+          {% endif %}
+          {% if d.created_time %}
+            <li><strong>投稿日時:</strong> {{ d.created_time }}</li>
+          {% endif %}
+        </ul>
+        <p><a href="{{ d.embed_link }}" target="_blank">▶ 動画を開く</a></p>
+        <p><a href="{{ url_for('dashboard') }}">← ダッシュボードへ戻る</a></p>
+      </div>
+      {% if d.cover_image_url %}
+        <div style="flex:1;">
+          <h3>サムネイル</h3>
+          <img src="{{ d.cover_image_url }}" style="max-width:100%; height:auto;" alt="サムネイル">
+        </div>
+      {% endif %}
+    </div>
     """, d=details)
 
 if __name__ == "__main__":
