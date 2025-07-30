@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 # 外部モジュールから関数をインポート
 from get_profile import get_user_profile
+from get_user_stats import get_user_stats
 from get_video_list import get_video_list
 from get_video_details import get_video_details
 
@@ -25,6 +26,7 @@ app.config['SESSION_COOKIE_SECURE'] = False  # ローカル開発用
 app.config['SESSION_COOKIE_HTTPONLY'] = False  # JavaScriptアクセスを許可
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # SameSite設定
 app.config['PERMANENT_SESSION_LIFETIME'] = 300  # 5分間
+app.config['SESSION_COOKIE_DOMAIN'] = None  # ドメイン制限なし
 
 # メモリ内ストレージ（セッションの代替）
 session_data = {}
@@ -34,11 +36,11 @@ def generate_pkce():
     import string
     import random
     
-    # (1) code_verifier を 43～128 文字の unreserved chars で生成
+    # (1) code_verifier を 43文字以上のunreserved charsで生成
     chars = string.ascii_letters + string.digits + '-._~'
     code_verifier = ''.join(random.choice(chars) for _ in range(64))
     
-    # (2) SHA256 ハッシュを取得し、16 進文字列でエンコード
+    # (2) TikTok方式のchallengeはhex digest
     code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).hexdigest()
     
     # デバッグ情報
@@ -48,16 +50,17 @@ def generate_pkce():
     print(f"PKCE Debug - Challenge: {code_challenge}")
     print(f"PKCE Debug - Challenge is hex: {all(c in '0123456789abcdef' for c in code_challenge)}")
     
+    # 検証用のデバッグ
+    print(f"PKCE Debug - Verifier contains unreserved chars only: {all(c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~' for c in code_verifier)}")
+    
     return code_verifier, code_challenge
 
 def get_redirect_uri():
-    """開発環境なら localhost, 本番は GitHub Pages を返す"""
-    host = request.host_url
-    # localhost または 127.0.0.1 のいずれかを検出
-    if os.getenv("FLASK_ENV")=="development" or "localhost" in host or "127.0.0.1" in host:
-        print("Using localhost redirect URI")
-        return "http://localhost:3456/callback/"
-    return "https://kazu-k0032.github.io/TikTok-API-Features/callback/"
+    """動的にリダイレクトURIを生成（TikTokポータル設定と完全一致させる）"""
+    # request.scheme と request.host を使い、常に実際のアクセス先と一致させる
+    redirect_uri = f"{request.scheme}://{request.host}/callback/"
+    print(f"Generated redirect URI: {redirect_uri}")
+    return redirect_uri
 
 @app.route("/")
 def index():
@@ -68,6 +71,10 @@ def index():
 
 @app.route("/login")
 def login():
+    # 古いセッションデータをクリア
+    session.clear()
+    session_data.clear()  # メモリ保存もクリア
+    
     uri = get_redirect_uri()
     
     # PKCEパラメータを生成
@@ -78,8 +85,12 @@ def login():
     session['code_verifier'] = code_verifier
     session.modified = True  # セッション変更を強制保存
     
-    # メモリ内ストレージにも保存（バックアップ）
+    # メモリ内ストレージにも保存（メインストレージとして使用）
     session_data['code_verifier'] = code_verifier
+    
+    # 保存確認のデバッグ
+    print(f"Login - Session code_verifier: {session.get('code_verifier', 'None')[:10]}...")
+    print(f"Login - Memory code_verifier: {session_data.get('code_verifier', 'None')[:10]}...")
     
     # デバッグ情報を出力
     print(f"Session ID: {session.sid if hasattr(session, 'sid') else 'N/A'}")
@@ -89,7 +100,7 @@ def login():
     
     params = {
         "client_key":    CLIENT_KEY,
-        "scope":         "user.info.basic,video.list",
+        "scope":         "user.info.basic,user.info.stats,video.list",
         "response_type": "code",
         "redirect_uri":  uri,
         "state":         STATE,
@@ -120,12 +131,14 @@ def callback():
     if state != STATE or not code:
         return "認証に失敗しました (Invalid state/code)", 400
 
-    # セッションからcode_verifierを取得（メモリ内ストレージをバックアップとして使用）
-    code_verifier = session.get('code_verifier')
+    # メモリ保存されたcode_verifierを優先利用（セッションの不整合を回避）
+    code_verifier = session_data.get('code_verifier')
     if not code_verifier:
-        code_verifier = session_data.get('code_verifier')
+        # フォールバック: セッションから取得
+        code_verifier = session.get('code_verifier')
     
     print(f"Callback - Code Verifier: {code_verifier[:10] if code_verifier else 'None'}...")
+    print(f"Callback - Code Verifier source: {'memory' if session_data.get('code_verifier') else 'session'}")
     
     if not code_verifier:
         return "認証に失敗しました (Missing code_verifier)", 400
@@ -188,30 +201,49 @@ def dashboard():
     if "access_token" not in session:
         return redirect(url_for("index"))
     token = session["access_token"]
+    open_id = session.get("open_id")
 
     # ── インポートした関数を利用 ──
     profile = get_user_profile(token)
-    videos  = get_video_list(token, max_count=20)
+    
+    # 統計情報を取得（user.info.statsスコープが必要）
+    try:
+        stats = get_user_stats(token, open_id)
+        # プロフィール情報に統計情報をマージ
+        profile.update(stats)
+    except Exception as e:
+        print(f"Stats API Error: {e}")
+        # 統計情報が取得できない場合はデフォルト値を設定
+        profile.update({
+            "follower_count": "N/A",
+            "following_count": "N/A", 
+            "video_count": "N/A",
+            "likes_count": "N/A"
+        })
+    
+    videos = get_video_list(token, open_id, max_count=20)
 
     # 結果を表示
     return render_template_string("""
     <h1>プロフィール情報</h1>
     <ul>
-      <li>表示名：{{ profile.display_name }}</li>
-      <li>フォロワー：{{ profile.follower_count }}</li>
-      <li>フォロー：{{ profile.following_count }}</li>
-      <li>いいね：{{ profile.likes_count }}</li>
-      <li>自己紹介：{{ profile.bio_description }}</li>
+      <li>表示名：{{ profile.display_name or '未設定' }}</li>
+      <li>アバター：<img src="{{ profile.avatar_url or '' }}" alt="アバター" style="width:50px;height:50px;border-radius:50%;" onerror="this.style.display='none'"></li>
+      <li>フォロワー数：{{ profile.follower_count }}</li>
+      <li>フォロー数：{{ profile.following_count }}</li>
+      <li>動画数：{{ profile.video_count }}</li>
+      <li>いいね数：{{ profile.likes_count }}</li>
     </ul>
 
     <h1>投稿動画一覧</h1>
     {% for v in videos %}
       <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
-        <p>ID: {{ v.id }} / タイトル: {{ v.title }}</p>
+        <p>ID: {{ v.id }} / タイトル: {{ v.title or 'タイトルなし' }}</p>
         <p><a href="{{ url_for('video_detail', video_id=v.id) }}">詳細を見る</a></p>
       </div>
     {% else %}
       <p>動画が見つかりませんでした。</p>
+      <p><small>※ 公開動画がないか、動画が存在しない可能性があります</small></p>
     {% endfor %}
 
     <p><a href="{{ url_for('index') }}">← ホームへ戻る</a></p>
