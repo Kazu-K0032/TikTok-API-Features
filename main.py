@@ -30,24 +30,23 @@ app.config['PERMANENT_SESSION_LIFETIME'] = 300  # 5分間
 session_data = {}
 
 def generate_pkce():
-    """PKCE用のcode_verifierとcode_challengeを生成"""
-    # 32バイトのランダムデータを生成
-    code_verifier_bytes = secrets.token_bytes(32)
+    """PKCE用のcode_verifierとcode_challengeを生成（TikTok公式仕様準拠）"""
+    import string
+    import random
     
-    # Base64URLエンコーディング（パディングなし）
-    code_verifier = base64.urlsafe_b64encode(code_verifier_bytes).decode('utf-8').rstrip('=')
+    # (1) code_verifier を 43～128 文字の unreserved chars で生成
+    chars = string.ascii_letters + string.digits + '-._~'
+    code_verifier = ''.join(random.choice(chars) for _ in range(64))
     
-    # SHA256ハッシュを計算
-    code_challenge_bytes = hashlib.sha256(code_verifier.encode('utf-8')).digest()
-    
-    # Base64URLエンコーディング（パディングなし）
-    code_challenge = base64.urlsafe_b64encode(code_challenge_bytes).decode('utf-8').rstrip('=')
+    # (2) SHA256 ハッシュを取得し、16 進文字列でエンコード
+    code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).hexdigest()
     
     # デバッグ情報
     print(f"PKCE Debug - Verifier length: {len(code_verifier)}")
     print(f"PKCE Debug - Challenge length: {len(code_challenge)}")
     print(f"PKCE Debug - Verifier: {code_verifier}")
     print(f"PKCE Debug - Challenge: {code_challenge}")
+    print(f"PKCE Debug - Challenge is hex: {all(c in '0123456789abcdef' for c in code_challenge)}")
     
     return code_verifier, code_challenge
 
@@ -56,9 +55,8 @@ def get_redirect_uri():
     host = request.host_url
     # localhost または 127.0.0.1 のいずれかを検出
     if os.getenv("FLASK_ENV")=="development" or "localhost" in host or "127.0.0.1" in host:
-        # 一時的にGitHub Pagesを使用してテスト
-        print("Using GitHub Pages redirect URI for testing")
-        return "https://kazu-k0032.github.io/TikTok-API-Features/callback/"
+        print("Using localhost redirect URI")
+        return "http://localhost:3456/callback/"
     return "https://kazu-k0032.github.io/TikTok-API-Features/callback/"
 
 @app.route("/")
@@ -143,11 +141,13 @@ def callback():
     }
     
     print(f"Token Request Data: {token_request_data}")
+    print(f"Token Request - Code Verifier: {code_verifier}")
+    print(f"Token Request - Redirect URI: {get_redirect_uri()}")
     
     token_res = requests.post(
         "https://open.tiktokapis.com/v2/oauth/token/",
-        data=token_request_data,  # jsonではなくdataを使用
-        headers={"Content-Type": "application/x-www-form-urlencoded"}
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data=token_request_data
     )
     if token_res.status_code != 200:
         return f"Token Error: {token_res.text}", 400
@@ -157,15 +157,22 @@ def callback():
     print(f"Token Response Status: {token_res.status_code}")
     print(f"Token Response JSON: {response_json}")
     
-    data = response_json.get("data", {})
-    print(f"Data field: {data}")
-    
-    # 安全にアクセストークンを取得
-    access_token = data.get("access_token")
-    open_id = data.get("open_id")
+    # TikTok v2の仕様に合わせて、ルート直下からアクセス
+    if "access_token" in response_json:
+        access_token = response_json["access_token"]
+        open_id = response_json["open_id"]
+        print(f"Found access_token in root: {access_token[:20]}...")
+    elif "data" in response_json:
+        # 互換性のため、dataフィールドもサポート
+        data = response_json["data"]
+        access_token = data.get("access_token")
+        open_id = data.get("open_id")
+        print(f"Found access_token in data field: {access_token[:20] if access_token else 'None'}...")
+    else:
+        return f"Access token not found in response: {response_json}", 400
     
     if not access_token:
-        return f"Access token not found in response: {response_json}", 400
+        return f"Access token is empty in response: {response_json}", 400
 
     # セッションに保存
     session["access_token"] = access_token
