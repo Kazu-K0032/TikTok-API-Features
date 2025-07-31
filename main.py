@@ -207,21 +207,10 @@ def dashboard():
     profile = get_user_profile(token)
     
     # 統計情報を取得（user.info.statsスコープが必要）
-    try:
-        stats = get_user_stats(token, open_id)
-        # プロフィール情報に統計情報をマージ
-        profile.update(stats)
-        print(f"Stats successfully retrieved: {stats}")
-    except Exception as e:
-        print(f"Stats API Error: {e}")
-        # 統計情報が取得できない場合はデフォルト値を設定
-        profile.update({
-            "follower_count": "N/A",
-            "following_count": "N/A", 
-            "video_count": "N/A",
-            "likes_count": "N/A"
-        })
-        print("Using default N/A values for stats")
+    stats = get_user_stats(token, open_id)
+    # プロフィール情報に統計情報をマージ
+    profile.update(stats)
+    print(f"Stats retrieved: {stats}")
     
     videos = get_video_list(token, open_id, max_count=20)
 
@@ -236,7 +225,7 @@ def dashboard():
       <li>動画数：{{ profile.video_count }}</li>
       <li>いいね数：{{ profile.likes_count }}</li>
     </ul>
-    <p><small>※ 統計情報（フォロワー数など）を取得するには user.info.stats スコープが必要です</small></p>
+    <p><small>※ 統計情報が0の場合は、user.info.stats スコープの認証が必要か、実際の値が0の可能性があります</small></p>
 
     <h1>投稿動画一覧</h1>
     {% for v in videos %}
