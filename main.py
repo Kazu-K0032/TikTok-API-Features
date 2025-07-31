@@ -65,8 +65,11 @@ def get_redirect_uri():
 @app.route("/")
 def index():
     return render_template_string("""
-    <h1>TikTok API Dashboard</h1>
-    <a href="{{ url_for('login') }}">▶ TikTok でログイン</a>
+    <div style="max-width:800px; margin:50px auto; text-align:center; padding:20px;">
+      <h1 style="color:#ff0050; margin-bottom:30px; font-size:2.5em;">TikTok API Dashboard</h1>
+      <p style="color:#666; margin-bottom:40px; font-size:18px;">TikTokアカウントにログインして、プロフィール情報と投稿動画を確認できます</p>
+      <a href="{{ url_for('login') }}" style="display:inline-block; padding:15px 30px; background-color:#ff0050; color:#fff; text-decoration:none; border-radius:25px; font-size:18px; font-weight:bold; box-shadow:0 4px 15px rgba(255,0,80,0.3); transition:all 0.3s ease;">▶ TikTok でログイン</a>
+    </div>
     """)
 
 @app.route("/login")
@@ -216,30 +219,71 @@ def dashboard():
 
     # 結果を表示
     return render_template_string("""
-    <h1>プロフィール情報</h1>
-    <ul>
-      <li>表示名：{{ profile.display_name or '未設定' }}</li>
-      <li>アバター：<img src="{{ profile.avatar_url or '' }}" alt="アバター" style="width:50px;height:50px;border-radius:50%;" onerror="this.style.display='none'"></li>
-      <li>フォロワー数：{{ profile.follower_count }}</li>
-      <li>フォロー数：{{ profile.following_count }}</li>
-      <li>動画数：{{ profile.video_count }}</li>
-      <li>いいね数：{{ profile.likes_count }}</li>
-    </ul>
+    <h1>ユーザープロフィール</h1>
+    <div style="display:flex; align-items:center; gap:20px; margin-bottom:30px; padding:20px; border:1px solid #ddd; border-radius:10px; background-color:#f9f9f9;">
+      <div>
+        <img src="{{ profile.avatar_url or '' }}" alt="アバター" style="width:80px;height:80px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+      </div>
+      <div>
+        <h2 style="margin:0 0 10px 0; color:#333;">{{ profile.display_name or '未設定' }}</h2>
+        <p style="margin:0; color:#666; font-family:monospace; font-size:14px;">Open ID: <code>{{ profile.open_id or '未取得' }}</code></p>
+      </div>
+    </div>
+
+    <h2>統計情報</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:30px;">
+      <div style="padding:15px; border:1px solid #ddd; border-radius:8px; text-align:center; background-color:#fff;">
+        <div style="font-size:24px; font-weight:bold; color:#ff0050;">{{ profile.follower_count }}</div>
+        <div style="color:#666; font-size:14px;">フォロワー数</div>
+      </div>
+      <div style="padding:15px; border:1px solid #ddd; border-radius:8px; text-align:center; background-color:#fff;">
+        <div style="font-size:24px; font-weight:bold; color:#ff0050;">{{ profile.following_count }}</div>
+        <div style="color:#666; font-size:14px;">フォロー数</div>
+      </div>
+      <div style="padding:15px; border:1px solid #ddd; border-radius:8px; text-align:center; background-color:#fff;">
+        <div style="font-size:24px; font-weight:bold; color:#ff0050;">{{ profile.video_count }}</div>
+        <div style="color:#666; font-size:14px;">動画数</div>
+      </div>
+      <div style="padding:15px; border:1px solid #ddd; border-radius:8px; text-align:center; background-color:#fff;">
+        <div style="font-size:24px; font-weight:bold; color:#ff0050;">{{ profile.likes_count }}</div>
+        <div style="color:#666; font-size:14px;">いいね数</div>
+      </div>
+    </div>
     <p><small>※ 統計情報が0の場合は、user.info.stats スコープの認証が必要か、実際の値が0の可能性があります</small></p>
 
-    <h1>投稿動画一覧</h1>
-    {% for v in videos %}
-      <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
-        <div>
-          <p><strong>ID:</strong> {{ v.id }} / <strong>タイトル:</strong> {{ v.title or 'タイトルなし' }}</p>
-          <p><strong>再生時間:</strong> {{ v.duration }}秒 / <strong>再生数:</strong> {{ v.view_count }} / <strong>いいね:</strong> {{ v.like_count }}</p>
-          <p><a href="{{ url_for('video_detail', video_id=v.id) }}">詳細を見る</a></p>
-        </div>
+    <h2>投稿動画一覧</h2>
+    {% if videos %}
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:15px;">
+        {% for v in videos %}
+          <div style="border:1px solid #ddd; border-radius:8px; padding:15px; background-color:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="margin:0 0 10px 0; color:#333; font-size:16px;">{{ v.title or 'タイトルなし' }}</h3>
+            <div style="margin-bottom:10px; font-size:12px; color:#666;">
+              <strong>ID:</strong> <code>{{ v.id }}</code>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:15px; text-align:center;">
+              <div>
+                <div style="font-weight:bold; color:#ff0050;">{{ v.duration }}秒</div>
+                <div style="font-size:12px; color:#666;">再生時間</div>
+              </div>
+              <div>
+                <div style="font-weight:bold; color:#ff0050;">{{ v.view_count }}</div>
+                <div style="font-size:12px; color:#666;">再生数</div>
+              </div>
+              <div>
+                <div style="font-weight:bold; color:#ff0050;">{{ v.like_count }}</div>
+                <div style="font-size:12px; color:#666;">いいね</div>
+              </div>
+            </div>
+            <a href="{{ url_for('video_detail', video_id=v.id) }}" style="display:inline-block; padding:8px 16px; background-color:#ff0050; color:#fff; text-decoration:none; border-radius:5px; font-size:14px;">詳細を見る</a>
+          </div>
+        {% endfor %}
       </div>
     {% else %}
-      <p>動画が見つかりませんでした。</p>
-      <p><small>※ 公開動画がないか、動画が存在しない可能性があります</small></p>
-    {% endfor %}
+      <div style="text-align:center; padding:40px; border:2px dashed #ddd; border-radius:10px; background-color:#f9f9f9;">
+        <p style="margin:0 0 10px 0; font-size:18px; color:#666;">動画が見つかりませんでした</p>
+        <p style="margin:0; font-size:14px; color:#999;">※ 公開動画がないか、動画が存在しない可能性があります</p>
+      </div>
+    {% endif %}
 
     <p><a href="{{ url_for('index') }}">← ホームへ戻る</a></p>
     """, profile=profile, videos=videos)
