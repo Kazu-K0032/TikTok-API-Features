@@ -1,10 +1,30 @@
 import requests
+from datetime import datetime
+
+def get_best_image_url(video_data):
+    """利用可能な画像URLを選択"""
+    # 現在利用可能なフィールド: cover_image_url
+    if video_data.get("cover_image_url"):
+        return video_data["cover_image_url"]
+    return None
+
+def format_create_time(create_time):
+    """投稿日時を読みやすい形式に変換"""
+    if not create_time:
+        return "不明"
+    try:
+        # UTC Unix epoch (seconds) を datetime に変換
+        dt = datetime.fromtimestamp(create_time)
+        return dt.strftime("%Y年%m月%d日 %H:%M")
+    except:
+        return "不明"
 
 def get_video_details_batch(access_token, video_ids):
     """複数の動画の詳細情報を一括取得"""
     try:
         # fieldsはURLクエリパラメータとして渡す
-        fields = "id,title,duration,view_count,like_count,comment_count,share_count,embed_link,cover_image_url,height,width,created_time"
+        # 統計情報を含む詳細情報を取得
+        fields = "id,title,duration,view_count,like_count,comment_count,share_count,embed_link,cover_image_url,create_time"
         url = f"https://open.tiktokapis.com/v2/video/query/?fields={fields}"
         
         resp = requests.post(
@@ -46,7 +66,8 @@ def get_video_list(access_token, open_id, max_count=10):
     """動画一覧を取得。video.listスコープが必要"""
     try:
         # fieldsはURLクエリパラメータとして渡す
-        fields = "id,title,duration,cover_image_url,embed_link"
+        # 基本情報のみを取得（パフォーマンス向上のため）
+        fields = "id,title,cover_image_url,create_time"
         url = f"https://open.tiktokapis.com/v2/video/list/?fields={fields}"
         
         resp = requests.post(
@@ -79,6 +100,15 @@ def get_video_list(access_token, open_id, max_count=10):
                     video_id = video.get("id")
                     if video_id and video_id in detailed_videos:
                         video.update(detailed_videos[video_id])
+                    
+                    # 最適な画像URLを設定
+                    video["best_image_url"] = get_best_image_url(video)
+                    
+                    # 投稿日時をフォーマット
+                    if video.get("create_time"):
+                        video["formatted_create_time"] = format_create_time(video["create_time"])
+                    else:
+                        video["formatted_create_time"] = "不明"
         
         return videos
         

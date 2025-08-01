@@ -1,36 +1,39 @@
 {% extends "base.html" %} {% block title %}動画詳細{% endblock %} {% block
 content %}
 <h1>動画詳細情報</h1>
-<div style="display: flex; gap: 20px">
+{% if d and d.id %}
+<div style="display: flex; gap: 20px; align-items: flex-start">
   <div style="flex: 1">
     <div class="card">
       <ul style="list-style: none; padding: 0; margin: 0">
-        <li style="margin-bottom: 10px"><strong>ID:</strong> {{ d.id }}</li>
+        <li style="margin-bottom: 10px">
+          <strong>ID:</strong> {{ d.id or '未取得' }}
+        </li>
         <li style="margin-bottom: 10px">
           <strong>タイトル:</strong> {{ d.title or 'タイトルなし' }}
         </li>
         <li style="margin-bottom: 10px">
-          <strong>再生時間:</strong> {{ d.duration }} 秒
+          <strong>再生時間:</strong> {{ d.duration or 0 }} 秒
         </li>
         <li style="margin-bottom: 10px">
-          <strong>再生数:</strong> {{ d.view_count }}
+          <strong>再生数:</strong> {{ d.view_count or 0 }}
         </li>
         <li style="margin-bottom: 10px">
-          <strong>いいね数:</strong> {{ d.like_count }}
+          <strong>いいね数:</strong> {{ d.like_count or 0 }}
         </li>
         <li style="margin-bottom: 10px">
-          <strong>コメント数:</strong> {{ d.comment_count }}
+          <strong>コメント数:</strong> {{ d.comment_count or 0 }}
         </li>
         <li style="margin-bottom: 10px">
-          <strong>シェア数:</strong> {{ d.share_count }}
+          <strong>シェア数:</strong> {{ d.share_count or 0 }}
         </li>
         {% if d.width and d.height %}
         <li style="margin-bottom: 10px">
           <strong>解像度:</strong> {{ d.width }}×{{ d.height }}
         </li>
-        {% endif %} {% if d.created_time %}
+        {% endif %} {% if d.formatted_create_time %}
         <li style="margin-bottom: 10px">
-          <strong>投稿日時:</strong> {{ d.created_time }}
+          <strong>投稿日時:</strong> {{ d.formatted_create_time }}
         </li>
         {% endif %}
       </ul>
@@ -44,17 +47,32 @@ content %}
       >← ダッシュボードへ戻る</a
     >
   </div>
-  {% if d.cover_image_url %}
-  <div style="flex: 1">
+  {% if d.best_image_url %}
+  <div style="flex: 1; min-width: 300px">
     <div class="card">
       <h3>サムネイル</h3>
       <img
-        src="{{ d.cover_image_url }}"
-        style="max-width: 100%; height: auto; border-radius: 8px"
+        src="{{ d.best_image_url }}"
+        style="
+          max-width: 100%;
+          height: auto;
+          border-radius: 8px;
+          aspect-ratio: 9/16;
+          object-fit: cover;
+        "
         alt="サムネイル"
       />
     </div>
   </div>
   {% endif %}
 </div>
-{% endblock %}
+{% else %}
+<div class="card">
+  <p style="text-align: center; color: #666; font-size: 18px">
+    動画情報を取得できませんでした
+  </p>
+  <p style="text-align: center; color: #999; font-size: 14px">
+    ※ 動画が存在しないか、アクセス権限がない可能性があります
+  </p>
+</div>
+{% endif %} {% endblock %}

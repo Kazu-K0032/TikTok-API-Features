@@ -64,20 +64,34 @@ content %}
 <div class="video-grid">
   {% for v in videos %}
   <div class="video-card">
+    {% if v.best_image_url %}
+    <div class="video-thumbnail">
+      <img src="{{ v.best_image_url }}" alt="サムネイル" class="video-cover" />
+    </div>
+    {% endif %}
     <h3 class="video-title">{{ v.title or 'タイトルなし' }}</h3>
-    <div class="video-id"><strong>ID:</strong> <code>{{ v.id }}</code></div>
+    <div class="video-meta">
+      <div class="video-id"><strong>ID:</strong> <code>{{ v.id }}</code></div>
+      <div class="video-date">
+        <strong>投稿日:</strong> {{ v.formatted_create_time }}
+      </div>
+    </div>
     <div class="video-stats">
       <div>
-        <div class="video-stat-number">{{ v.duration }}秒</div>
+        <div class="video-stat-number">{{ v.duration or 0 }}秒</div>
         <div class="video-stat-label">再生時間</div>
       </div>
       <div>
-        <div class="video-stat-number">{{ v.view_count }}</div>
+        <div class="video-stat-number">{{ v.view_count or 0 }}</div>
         <div class="video-stat-label">再生数</div>
       </div>
       <div>
-        <div class="video-stat-number">{{ v.like_count }}</div>
+        <div class="video-stat-number">{{ v.like_count or 0 }}</div>
         <div class="video-stat-label">いいね</div>
+      </div>
+      <div>
+        <div class="video-stat-number">{{ v.comment_count or 0 }}</div>
+        <div class="video-stat-label">コメント</div>
       </div>
     </div>
     <a href="{{ url_for('video_detail', video_id=v.id) }}" class="btn btn-small"

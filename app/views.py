@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, session, request
 from app.auth_service import AuthService
 from app.services.get_profile import get_user_profile
-from app.services.get_video_list import get_video_list
+from app.services.get_video_list import get_video_list, format_create_time
 from app.services.get_video_details import get_video_details
 
 class Views:
@@ -68,5 +68,21 @@ class Views:
         
         token = session["access_token"]
         details = get_video_details(token, video_id)
+        
+        print(f"Video detail data: {details}")
+        
+        # 画像URLの情報をログ出力
+        if details:
+            print(f"Available image URLs:")
+            print(f"  - cover_image_url: {details.get('cover_image_url')}")
+            print(f"  - best_image_url: {details.get('best_image_url')}")
+        
+        # 投稿日時をフォーマット
+        if details.get("create_time"):
+            details["formatted_create_time"] = format_create_time(details["create_time"])
+        else:
+            details["formatted_create_time"] = "不明"
+        
+        print(f"Formatted video detail data: {details}")
         
         return render_template('video_detail.html', d=details) 
