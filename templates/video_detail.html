@@ -1,5 +1,10 @@
 {% extends "base.html" %} {% block title %}動画詳細{% endblock %} {% block
-content %}
+extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/video-detail.css') }}"
+/>
+{% endblock %} {% block content %}
 <h1>動画詳細情報</h1>
 {% if d and d.id %}
 <div class="video-detail-container">

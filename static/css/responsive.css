@@ -1,0 +1,196 @@
+/* レスポンシブ対応スタイル */
+
+/* 1024px以下 */
+@media (max-width: 1024px) {
+  .video-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    column-gap: 15px;
+    row-gap: 25px;
+  }
+
+  .video-thumbnail {
+    max-width: 240px;
+  }
+
+  .video-detail-container {
+    gap: 15px;
+  }
+
+  .video-detail-info {
+    flex: 1.5;
+  }
+
+  .video-detail-thumbnail {
+    width: 400px;
+  }
+}
+
+/* 768px以下 */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .video-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    column-gap: 12px;
+    row-gap: 20px;
+  }
+
+  .video-thumbnail {
+    max-width: 200px;
+  }
+
+  .profile-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .video-detail-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .video-detail-info {
+    flex: 1;
+  }
+
+  .video-detail-thumbnail {
+    width: 100%;
+    padding-right: 0;
+  }
+
+  .video-detail-image {
+    max-width: 350px;
+    width: 100%;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .video-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .video-info-card {
+    padding: 20px;
+  }
+
+  .video-info-title {
+    font-size: 1.3em;
+  }
+
+  .back-link-responsive {
+    /* 縦並び時: サムネイルの下に配置 */
+    margin-top: 30px;
+    text-align: center;
+  }
+}
+
+/* 480px以下 */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr;
+    column-gap: 15px;
+    row-gap: 18px;
+  }
+
+  .video-thumbnail {
+    max-width: 180px;
+  }
+
+  .profile-container {
+    gap: 10px;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .video-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .container {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 2em;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .video-title {
+    font-size: 14px;
+  }
+
+  .video-meta {
+    font-size: 11px;
+  }
+
+  .video-stat-number {
+    font-size: 14px;
+  }
+
+  .video-stat-label {
+    font-size: 11px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .video-detail-container {
+    gap: 15px;
+  }
+
+  .video-detail-image {
+    max-width: 280px;
+  }
+
+  .video-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .video-info-card {
+    padding: 16px;
+  }
+
+  .video-info-title {
+    font-size: 1.2em;
+  }
+
+  .video-stat-item {
+    padding: 12px;
+  }
+
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1em;
+  }
+
+  .btn-primary {
+    padding: 14px 24px;
+    font-size: 1em;
+  }
+}

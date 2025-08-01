@@ -1,0 +1,92 @@
+/* ベーススタイル */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  color: #333;
+  min-width: 375px;
+}
+
+.container {
+  max-width: 1440px;
+  min-width: 375px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  color: #ff0050;
+  margin-bottom: 10px;
+  font-size: 2.5em;
+}
+
+/* カードスタイル */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ボタンスタイル */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #ff0050;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 25px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 0, 80, 0.3);
+}
+
+.btn:hover {
+  background-color: #e6004c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 0, 80, 0.4);
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+/* 戻るリンク */
+.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  color: #666;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: #ff0050;
+}
+
+/* 空の状態 */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  border: 2px dashed #ddd;
+}
+
+.empty-state-title {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #666;
+}
+
+.empty-state-description {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+}

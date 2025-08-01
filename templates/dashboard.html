@@ -1,5 +1,10 @@
 {% extends "base.html" %} {% block title %}ダッシュボード{% endblock %} {% block
-content %}
+extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/dashboard.css') }}"
+/>
+{% endblock %} {% block content %}
 <h1>ユーザープロフィール</h1>
 <div class="card">
   <div class="profile-container">
@@ -36,20 +41,20 @@ content %}
 <h2>統計情報</h2>
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-number">{{ profile.follower_count }}</div>
-    <div class="stat-label">フォロワー数</div>
-  </div>
-  <div class="stat-card">
     <div class="stat-number">{{ profile.following_count }}</div>
     <div class="stat-label">フォロー数</div>
   </div>
   <div class="stat-card">
-    <div class="stat-number">{{ profile.video_count }}</div>
-    <div class="stat-label">動画数</div>
+    <div class="stat-number">{{ profile.follower_count }}</div>
+    <div class="stat-label">フォロワー数</div>
   </div>
   <div class="stat-card">
     <div class="stat-number">{{ profile.likes_count }}</div>
     <div class="stat-label">いいね数</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ profile.video_count }}</div>
+    <div class="stat-label">動画数</div>
   </div>
 </div>
 <p>
@@ -77,10 +82,6 @@ content %}
       </div>
     </div>
     <div class="video-stats">
-      <div>
-        <div class="video-stat-number">{{ v.duration or 0 }}秒</div>
-        <div class="video-stat-label">再生時間</div>
-      </div>
       <div>
         <div class="video-stat-number">{{ v.view_count or 0 }}</div>
         <div class="video-stat-label">再生数</div>
