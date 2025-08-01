@@ -26,4 +26,8 @@ class Config:
     
     # アプリケーション設定
     DEBUG = os.getenv("DEBUG", "True").lower() == "true"
-    PORT = int(os.getenv("PORT", "3456")) 
+    PORT = int(os.getenv("PORT", "3456"))
+    
+    # API設定
+    DEFAULT_VIDEO_COUNT = int(os.getenv("DEFAULT_VIDEO_COUNT", "10"))
+    MAX_VIDEO_COUNT = int(os.getenv("MAX_VIDEO_COUNT", "20")) 

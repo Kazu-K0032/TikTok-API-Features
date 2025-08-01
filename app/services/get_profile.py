@@ -1,7 +1,10 @@
 """ユーザープロフィール情報取得サービス"""
 
+import logging
 from typing import Dict, Any
 from app.services.utils import make_tiktok_api_request, extract_user_data
+
+logger = logging.getLogger(__name__)
 
 def get_user_profile(access_token: str) -> Dict[str, Any]:
     """ユーザープロフィール情報と統計情報を取得"""
@@ -15,9 +18,9 @@ def get_user_profile(access_token: str) -> Dict[str, Any]:
         params={"fields": fields}
     )
     
-    print(f"Profile API Response: {response}")
+    logger.debug(f"プロフィールAPIレスポンス: {response}")
     
     user_data = extract_user_data(response)
-    print(f"Extracted user data: {user_data}")
+    logger.debug(f"抽出されたユーザーデータ: {user_data}")
     
     return user_data

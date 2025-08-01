@@ -36,15 +36,15 @@ def make_tiktok_api_request(
             raise ValueError(f"Unsupported HTTP method: {method}")
         
         if resp.status_code != 200:
-            logger.error(f"API Error: {resp.status_code} - {resp.text}")
+            logger.error(f"APIエラー: {resp.status_code} - {resp.text}")
             if json_data:
-                logger.error(f"Request JSON: {json_data}")
+                logger.error(f"リクエストJSON: {json_data}")
             return {}
         
         return resp.json()
         
     except Exception as e:
-        logger.error(f"API Exception: {e}")
+        logger.error(f"API例外: {e}")
         return {}
 
 def extract_user_data(response: Dict[str, Any]) -> Dict[str, Any]:

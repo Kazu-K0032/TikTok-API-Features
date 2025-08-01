@@ -1,10 +1,13 @@
 """動画一覧取得サービス"""
 
+import logging
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from app.services.utils import make_tiktok_api_request, extract_videos_data, get_best_image_url
 
-def format_create_time(create_time):
+logger = logging.getLogger(__name__)
+
+def format_create_time(create_time: Optional[int]) -> str:
     """投稿日時を読みやすい形式に変換"""
     if not create_time:
         return "不明"
@@ -27,7 +30,7 @@ def get_video_details_batch(access_token: str, video_ids: List[str]) -> Dict[str
         json_data={"filters": {"video_ids": video_ids}}
     )
     
-    print(f"Video Query API Response: {response}")
+    logger.debug(f"動画クエリAPIレスポンス: {response}")
     
     videos_data = extract_videos_data(response)
     
@@ -38,7 +41,7 @@ def get_video_details_batch(access_token: str, video_ids: List[str]) -> Dict[str
         if video_id:
             result[video_id] = video
     
-    print(f"Extracted detailed videos: {result}")
+    logger.debug(f"抽出された詳細動画: {result}")
     return result
 
 def get_video_list(access_token: str, open_id: str, max_count: int = 10) -> List[Dict[str, Any]]:
@@ -53,10 +56,10 @@ def get_video_list(access_token: str, open_id: str, max_count: int = 10) -> List
         json_data={"max_count": max_count}
     )
     
-    print(f"Video List API Response: {response}")
+    logger.debug(f"動画リストAPIレスポンス: {response}")
     
     videos = extract_videos_data(response)
-    print(f"Extracted videos: {videos}")
+    logger.debug(f"抽出された動画: {videos}")
     
     # 動画IDのリストを取得して、詳細情報を一括取得
     if videos:

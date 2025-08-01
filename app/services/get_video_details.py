@@ -1,7 +1,10 @@
 """動画詳細情報取得サービス"""
 
+import logging
 from typing import Dict, Any
 from app.services.utils import make_tiktok_api_request, extract_videos_data, get_best_image_url
+
+logger = logging.getLogger(__name__)
 
 def get_video_details(access_token: str, video_id: str) -> Dict[str, Any]:
     """単一動画の詳細情報を取得"""
@@ -15,7 +18,7 @@ def get_video_details(access_token: str, video_id: str) -> Dict[str, Any]:
         json_data={"filters": {"video_ids": [video_id]}}
     )
     
-    print(f"Video Detail API Response: {response}")
+    logger.debug(f"動画詳細APIレスポンス: {response}")
     
     videos = extract_videos_data(response)
     if videos:
