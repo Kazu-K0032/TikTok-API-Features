@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}動画詳細{% endblock %} {% block
+content %}
+<h1>動画詳細情報</h1>
+<div style="display: flex; gap: 20px">
+  <div style="flex: 1">
+    <div class="card">
+      <ul style="list-style: none; padding: 0; margin: 0">
+        <li style="margin-bottom: 10px"><strong>ID:</strong> {{ d.id }}</li>
+        <li style="margin-bottom: 10px">
+          <strong>タイトル:</strong> {{ d.title or 'タイトルなし' }}
+        </li>
+        <li style="margin-bottom: 10px">
+          <strong>再生時間:</strong> {{ d.duration }} 秒
+        </li>
+        <li style="margin-bottom: 10px">
+          <strong>再生数:</strong> {{ d.view_count }}
+        </li>
+        <li style="margin-bottom: 10px">
+          <strong>いいね数:</strong> {{ d.like_count }}
+        </li>
+        <li style="margin-bottom: 10px">
+          <strong>コメント数:</strong> {{ d.comment_count }}
+        </li>
+        <li style="margin-bottom: 10px">
+          <strong>シェア数:</strong> {{ d.share_count }}
+        </li>
+        {% if d.width and d.height %}
+        <li style="margin-bottom: 10px">
+          <strong>解像度:</strong> {{ d.width }}×{{ d.height }}
+        </li>
+        {% endif %} {% if d.created_time %}
+        <li style="margin-bottom: 10px">
+          <strong>投稿日時:</strong> {{ d.created_time }}
+        </li>
+        {% endif %}
+      </ul>
+      <div style="margin-top: 20px">
+        <a href="{{ d.embed_link }}" target="_blank" class="btn"
+          >▶ 動画を開く</a
+        >
+      </div>
+    </div>
+    <a href="{{ url_for('dashboard') }}" class="back-link"
+      >← ダッシュボードへ戻る</a
+    >
+  </div>
+  {% if d.cover_image_url %}
+  <div style="flex: 1">
+    <div class="card">
+      <h3>サムネイル</h3>
+      <img
+        src="{{ d.cover_image_url }}"
+        style="max-width: 100%; height: auto; border-radius: 8px"
+        alt="サムネイル"
+      />
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
