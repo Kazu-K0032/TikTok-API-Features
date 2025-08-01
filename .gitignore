@@ -19,6 +19,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.log
+app.log
 
 # Virtual Environment
 venv/
@@ -41,3 +43,7 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Flask Session Files
+/tmp/flask_session/
+flask_session/

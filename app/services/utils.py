@@ -1,7 +1,10 @@
 """TikTok API Services 共通ユーティリティ"""
 
 import requests
+import logging
 from typing import Dict, List, Optional, Any
+
+logger = logging.getLogger(__name__)
 
 def get_best_image_url(video_data: Dict[str, Any]) -> Optional[str]:
     """利用可能な画像URLを選択"""
@@ -33,15 +36,15 @@ def make_tiktok_api_request(
             raise ValueError(f"Unsupported HTTP method: {method}")
         
         if resp.status_code != 200:
-            print(f"API Error: {resp.status_code} - {resp.text}")
+            logger.error(f"API Error: {resp.status_code} - {resp.text}")
             if json_data:
-                print(f"Request JSON: {json_data}")
+                logger.error(f"Request JSON: {json_data}")
             return {}
         
         return resp.json()
         
     except Exception as e:
-        print(f"API Exception: {e}")
+        logger.error(f"API Exception: {e}")
         return {}
 
 def extract_user_data(response: Dict[str, Any]) -> Dict[str, Any]:

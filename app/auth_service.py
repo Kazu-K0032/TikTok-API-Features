@@ -2,8 +2,11 @@ import hashlib
 import string
 import random
 import requests
+import logging
 from flask import request, session
 from app.config import Config
+
+logger = logging.getLogger(__name__)
 
 class AuthService:
     """TikTok認証サービス"""
@@ -23,14 +26,14 @@ class AuthService:
         code_challenge = hashlib.sha256(code_verifier.encode('utf-8')).hexdigest()
         
         # デバッグ情報
-        print(f"PKCE Debug - Verifier length: {len(code_verifier)}")
-        print(f"PKCE Debug - Challenge length: {len(code_challenge)}")
-        print(f"PKCE Debug - Verifier: {code_verifier}")
-        print(f"PKCE Debug - Challenge: {code_challenge}")
-        print(f"PKCE Debug - Challenge is hex: {all(c in '0123456789abcdef' for c in code_challenge)}")
+        logger.debug(f"PKCE Debug - Verifier length: {len(code_verifier)}")
+        logger.debug(f"PKCE Debug - Challenge length: {len(code_challenge)}")
+        logger.debug(f"PKCE Debug - Verifier: {code_verifier}")
+        logger.debug(f"PKCE Debug - Challenge: {code_challenge}")
+        logger.debug(f"PKCE Debug - Challenge is hex: {all(c in '0123456789abcdef' for c in code_challenge)}")
         
         # 検証用のデバッグ
-        print(f"PKCE Debug - Verifier contains unreserved chars only: {all(c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~' for c in code_verifier)}")
+        logger.debug(f"PKCE Debug - Verifier contains unreserved chars only: {all(c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~' for c in code_verifier)}")
         
         return code_verifier, code_challenge
     
@@ -61,14 +64,14 @@ class AuthService:
         self.session_data['code_verifier'] = code_verifier
         
         # 保存確認のデバッグ
-        print(f"Login - Session code_verifier: {session.get('code_verifier', 'None')[:10]}...")
-        print(f"Login - Memory code_verifier: {self.session_data.get('code_verifier', 'None')[:10]}...")
+        logger.debug(f"Login - Session code_verifier: {session.get('code_verifier', 'None')[:10]}...")
+        logger.debug(f"Login - Memory code_verifier: {self.session_data.get('code_verifier', 'None')[:10]}...")
         
         # デバッグ情報を出力
-        print(f"Session ID: {session.sid if hasattr(session, 'sid') else 'N/A'}")
-        print(f"Code Verifier saved: {code_verifier[:10]}...")
-        print(f"Session contents: {dict(session)}")
-        print(f"Memory storage: {self.session_data}")
+        logger.debug(f"Session ID: {session.sid if hasattr(session, 'sid') else 'N/A'}")
+        logger.debug(f"Code Verifier saved: {code_verifier[:10]}...")
+        logger.debug(f"Session contents: {dict(session)}")
+        logger.debug(f"Memory storage: {self.session_data}")
         
         params = {
             "client_key": self.config.TIKTOK_CLIENT_KEY,
@@ -82,20 +85,20 @@ class AuthService:
         url = self.config.TIKTOK_AUTH_URL + "?" + "&".join(f"{k}={v}" for k,v in params.items())
         
         # デバッグ情報を出力
-        print(f"Client Key: {self.config.TIKTOK_CLIENT_KEY}")
-        print(f"Redirect URI: {uri}")
-        print(f"Code Challenge: {code_challenge}")
-        print(f"Auth URL: {url}")
+        logger.debug(f"Client Key: {self.config.TIKTOK_CLIENT_KEY}")
+        logger.debug(f"Redirect URI: {uri}")
+        logger.debug(f"Code Challenge: {code_challenge}")
+        logger.debug(f"Auth URL: {url}")
         
         return url
     
     def handle_callback(self, code, state):
         """認証コールバックを処理"""
         # デバッグ情報を出力
-        print(f"Callback - Session contents: {dict(session)}")
-        print(f"Callback - Memory storage: {self.session_data}")
-        print(f"Callback - Code: {code[:20] if code else 'None'}...")
-        print(f"Callback - State: {state}")
+        logger.debug(f"Callback - Session contents: {dict(session)}")
+        logger.debug(f"Callback - Memory storage: {self.session_data}")
+        logger.debug(f"Callback - Code: {code[:20] if code else 'None'}...")
+        logger.debug(f"Callback - State: {state}")
         
         if state != self.config.STATE or not code:
             return None, "認証に失敗しました (Invalid state/code)"
@@ -106,10 +109,11 @@ class AuthService:
             # フォールバック: セッションから取得
             code_verifier = session.get('code_verifier')
         
-        print(f"Callback - Code Verifier: {code_verifier[:10] if code_verifier else 'None'}...")
-        print(f"Callback - Code Verifier source: {'memory' if self.session_data.get('code_verifier') else 'session'}")
+        logger.debug(f"Callback - Code Verifier: {code_verifier[:10] if code_verifier else 'None'}...")
+        logger.debug(f"Callback - Code Verifier source: {'memory' if self.session_data.get('code_verifier') else 'session'}")
         
         if not code_verifier:
+            logger.error("Missing code_verifier in callback")
             return None, "認証に失敗しました (Missing code_verifier)"
 
         # Access Token の取得
@@ -122,45 +126,61 @@ class AuthService:
             "code_verifier": code_verifier
         }
         
-        print(f"Token Request Data: {token_request_data}")
-        print(f"Token Request - Code Verifier: {code_verifier}")
-        print(f"Token Request - Redirect URI: {self.get_redirect_uri()}")
+        logger.debug(f"Token Request - Code Verifier: {code_verifier}")
+        logger.debug(f"Token Request - Redirect URI: {self.get_redirect_uri()}")
         
-        token_res = requests.post(
-            self.config.TIKTOK_TOKEN_URL,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            data=token_request_data
-        )
-        if token_res.status_code != 200:
-            return None, f"Token Error: {token_res.text}"
+        try:
+            token_res = requests.post(
+                self.config.TIKTOK_TOKEN_URL,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                data=token_request_data,
+                timeout=30
+            )
+            
+            logger.debug(f"Token Response Status: {token_res.status_code}")
+            
+            if token_res.status_code != 200:
+                logger.error(f"Token Error: {token_res.status_code} - {token_res.text}")
+                return None, f"Token Error: {token_res.text}"
 
-        # レスポンスの詳細をデバッグ出力
-        response_json = token_res.json()
-        print(f"Token Response Status: {token_res.status_code}")
-        print(f"Token Response JSON: {response_json}")
-        
-        # TikTok v2の仕様に合わせて、ルート直下からアクセス
-        if "access_token" in response_json:
-            access_token = response_json["access_token"]
-            open_id = response_json["open_id"]
-            print(f"Found access_token in root: {access_token[:20]}...")
-        elif "data" in response_json:
-            # 互換性のため、dataフィールドもサポート
-            data = response_json["data"]
-            access_token = data.get("access_token")
-            open_id = data.get("open_id")
-            print(f"Found access_token in data field: {access_token[:20] if access_token else 'None'}...")
-        else:
-            return None, f"Access token not found in response: {response_json}"
-        
-        if not access_token:
-            return None, f"Access token is empty in response: {response_json}"
+            # レスポンスの詳細をデバッグ出力
+            response_json = token_res.json()
+            logger.debug(f"Token Response JSON: {response_json}")
+            
+            # TikTok v2の仕様に合わせて、ルート直下からアクセス
+            if "access_token" in response_json:
+                access_token = response_json["access_token"]
+                open_id = response_json["open_id"]
+                logger.info(f"Found access_token in root: {access_token[:20]}...")
+            elif "data" in response_json:
+                # 互換性のため、dataフィールドもサポート
+                data = response_json["data"]
+                access_token = data.get("access_token")
+                open_id = data.get("open_id")
+                logger.info(f"Found access_token in data field: {access_token[:20] if access_token else 'None'}...")
+            else:
+                logger.error(f"Access token not found in response: {response_json}")
+                return None, f"Access token not found in response: {response_json}"
+            
+            if not access_token:
+                logger.error(f"Access token is empty in response: {response_json}")
+                return None, f"Access token is empty in response: {response_json}"
 
-        # セッションに保存
-        session["access_token"] = access_token
-        session["open_id"] = open_id
-        
-        # code_verifierを削除（セキュリティのため）
-        session.pop('code_verifier', None)
-
-        return {"access_token": access_token, "open_id": open_id}, None 
+            # セッションに保存
+            session["access_token"] = access_token
+            session["open_id"] = open_id
+            session.modified = True  # セッション変更を強制保存
+            
+            # code_verifierを削除（セキュリティのため）
+            session.pop('code_verifier', None)
+            
+            logger.info(f"Authentication successful, session saved - Token: {access_token[:20]}..., Open ID: {open_id}")
+            logger.debug(f"Session after save: {dict(session)}")
+            return {"access_token": access_token, "open_id": open_id}, None
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request exception during token exchange: {e}")
+            return None, f"Network error: {str(e)}"
+        except Exception as e:
+            logger.error(f"Unexpected error during token exchange: {e}")
+            return None, f"Unexpected error: {str(e)}" 

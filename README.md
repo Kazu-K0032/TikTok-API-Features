@@ -1,57 +1,123 @@
 # TikTok API Features
 
-TikTok API を使用してアカウント認証、動画リスト取得、プロフィール情報取得、特定動画の詳細情報取得を実装した Flask アプリケーションです。
+TikTok API を使用してユーザープロフィール情報と投稿動画を取得・表示する Flask アプリケーションです。
 
 ## 機能
 
-- **アカウント認証**: TikTok OAuth 2.0 を使用したユーザー認証
-- **プロフィール情報取得**: ユーザーの基本情報、フォロワー数、フォロー数などを取得
-- **動画リスト取得**: ユーザーの投稿動画一覧を取得
-- **動画詳細情報取得**: 特定の動画の詳細情報（再生数、いいね数、コメント数など）を取得
+- TikTok OAuth 2.0 認証（PKCE 方式）
+- ユーザープロフィール情報の取得・表示
+- 統計情報（フォロワー数、フォロー数、いいね数、動画数）の表示
+- 投稿動画一覧の取得・表示
+- 動画詳細情報の表示
+- レスポンシブデザイン対応
+
+## 技術スタック
+
+- **Backend**: Python 3.8+, Flask
+- **Frontend**: HTML5, CSS3, Jinja2 Templates
+- **API**: TikTok API v2
+- **認証**: OAuth 2.0 with PKCE
+- **ログ**: Python logging
 
 ## セットアップ
 
-1. 依存関係をインストール:
+### 1. 依存関係のインストール
 
 ```bash
 pip install -r requirements.txt
 ```
 
-2. 環境変数を設定:
-   `.env`ファイルを作成し、以下の内容を追加:
+### 2. 環境変数の設定
 
-```
-TIKTOK_CLIENT_KEY=your_tiktok_client_key
-TIKTOK_CLIENT_SECRET=your_tiktok_client_secret
-```
-
-3. アプリケーションを起動:
+`env.example`を参考に`.env`ファイルを作成してください：
 
 ```bash
-python main.py
+cp env.example .env
 ```
 
-4. ブラウザで `http://localhost:3456` にアクセス
+必要な環境変数：
 
-## 使用方法
+- `TIKTOK_CLIENT_KEY`: TikTok Developer Portal で取得した Client Key
+- `TIKTOK_CLIENT_SECRET`: TikTok Developer Portal で取得した Client Secret
+- `SECRET_KEY`: Flask アプリケーションの秘密鍵
 
-1. ホームページで「TikTok でログイン」ボタンをクリック
-2. TikTok の認証画面でアカウントにログイン
-3. 認証後、ダッシュボードで以下が表示されます:
-   - プロフィール情報（表示名、フォロワー数、フォロー数、いいね数、自己紹介）
-   - 投稿動画リスト（タイトル、再生時間、いいね数、コメント数、シェア数、再生数）
-4. 各動画の「詳細を見る」ボタンで特定動画の詳細情報を確認
+### 3. TikTok Developer Portal 設定
 
-## API エンドポイント
+1. [TikTok Developer Portal](https://developers.tiktok.com/)でアプリケーションを作成
+2. 必要なスコープを有効化：
+   - `user.info.basic`
+   - `user.info.profile`
+   - `user.info.stats`
+   - `video.list`
+3. リダイレクト URI を設定：`http://localhost:3456/callback/`
 
-- `GET /`: ホームページ
-- `GET /login`: TikTok 認証開始
-- `GET /callback/`: 認証コールバック処理
-- `GET /dashboard`: ダッシュボード表示
-- `GET /video/<video_id>`: 特定動画の詳細情報表示
+### 4. アプリケーションの起動
 
-## 注意事項
+```bash
+python app.py
+```
 
-- 本番環境では、セッション管理に Redis などの永続的なストレージを使用してください
-- TikTok API の利用制限に注意してください
-- 環境変数は適切に管理し、公開リポジトリにコミットしないでください
+アプリケーションは `http://localhost:3456` で起動します。
+
+## アーキテクチャ
+
+```
+app/
+├── __init__.py
+├── config.py          # アプリケーション設定
+├── auth_service.py    # TikTok認証サービス
+├── views.py          # ビューコントローラー
+├── utils.py          # 共通ユーティリティ
+└── services/         # APIサービス層
+    ├── __init__.py
+    ├── utils.py      # API共通ユーティリティ
+    ├── get_profile.py
+    ├── get_video_list.py
+    └── get_video_details.py
+
+static/
+├── css/
+│   ├── base.css
+│   ├── dashboard.css
+│   ├── video-detail.css
+│   └── responsive.css
+└── js/
+
+templates/
+├── base.html
+├── index.html
+├── dashboard.html
+└── video_detail.html
+```
+
+## 改善点
+
+### セキュリティ強化
+
+- 環境変数による設定管理
+- トークン有効性チェック
+- セッション管理の改善
+
+### エラーハンドリング
+
+- 構造化ログシステムの導入
+- 例外処理の強化
+- ユーザーフレンドリーなエラーメッセージ
+
+### コード品質
+
+- 型ヒントの統一
+- 責務分離の徹底
+- 共通ユーティリティの活用
+
+## ログ
+
+アプリケーションは以下のログファイルを生成します：
+
+- `app.log`: アプリケーションログ
+
+ログレベルは環境変数 `LOG_LEVEL` で制御可能です（DEBUG, INFO, WARNING, ERROR）。
+
+## ライセンス
+
+MIT License
