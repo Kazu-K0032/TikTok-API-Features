@@ -31,4 +31,21 @@ def validate_token(access_token: str) -> bool:
     if not access_token.startswith("act."):
         return False
     
-    return True 
+    return True
+
+def cleanup_caches() -> None:
+    """キャッシュのクリーンアップを実行"""
+    try:
+        from app.services.cache import video_cache, profile_cache
+        
+        # 期限切れエントリを削除
+        video_cleaned = video_cache.cleanup()
+        profile_cleaned = profile_cache.cleanup()
+        
+        logger = get_logger(__name__)
+        if video_cleaned > 0 or profile_cleaned > 0:
+            logger.info(f"キャッシュクリーンアップ完了: 動画キャッシュ{video_cleaned}件, プロフィールキャッシュ{profile_cleaned}件を削除")
+        
+    except ImportError:
+        # キャッシュモジュールが利用できない場合は何もしない
+        pass 

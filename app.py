@@ -1,7 +1,7 @@
 from flask import Flask
 from app.config import Config
 from app.views import Views
-from app.utils import setup_logging
+from app.utils import setup_logging, cleanup_caches
 
 def create_app():
     """Flaskアプリケーションを作成"""
@@ -47,6 +47,14 @@ def create_app():
     @app.route("/video/<video_id>")
     def video_detail(video_id):
         return views.video_detail(video_id)
+    
+    # 定期的なキャッシュクリーンアップ
+    @app.before_request
+    def before_request():
+        # リクエストの10%でキャッシュクリーンアップを実行
+        import random
+        if random.random() < 0.1:
+            cleanup_caches()
     
     return app
 

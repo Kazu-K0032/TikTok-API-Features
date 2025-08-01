@@ -193,4 +193,14 @@
     padding: 14px 24px;
     font-size: 1em;
   }
+
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pagination-pages {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }

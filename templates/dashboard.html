@@ -13,6 +13,7 @@ extra_css %}
         src="{{ profile.avatar_url or '' }}"
         alt="アバター"
         class="profile-avatar"
+        loading="lazy"
         onerror="this.style.display='none'"
       />
     </div>
@@ -65,13 +66,23 @@ extra_css %}
 </p>
 
 <h2>投稿動画一覧</h2>
-{% if videos %}
+{% if videos %} {% if pagination_summary %}
+<div class="pagination-summary">
+  <p>{{ pagination_summary }}</p>
+</div>
+{% endif %}
+
 <div class="video-grid">
   {% for v in videos %}
   <div class="video-card">
     {% if v.best_image_url %}
     <div class="video-thumbnail">
-      <img src="{{ v.best_image_url }}" alt="サムネイル" class="video-cover" />
+      <img
+        src="{{ v.best_image_url }}"
+        alt="サムネイル"
+        class="video-cover"
+        loading="lazy"
+      />
     </div>
     {% endif %}
     <h3 class="video-title">{{ v.title or 'タイトルなし' }}</h3>
@@ -101,7 +112,38 @@ extra_css %}
   </div>
   {% endfor %}
 </div>
-{% else %}
+
+{% if pagination and pagination.total_pages > 1 %}
+<div class="pagination">
+  {% if pagination.has_prev %}
+  <a
+    href="{{ url_for('dashboard', page=pagination.prev_page) }}"
+    class="pagination-btn"
+  >
+    ← 前のページ
+  </a>
+  {% endif %}
+
+  <div class="pagination-pages">
+    {% for page_num in pagination.pages %} {% if page_num == pagination.page %}
+    <span class="pagination-current">{{ page_num }}</span>
+    {% else %}
+    <a href="{{ url_for('dashboard', page=page_num) }}" class="pagination-link">
+      {{ page_num }}
+    </a>
+    {% endif %} {% endfor %}
+  </div>
+
+  {% if pagination.has_next %}
+  <a
+    href="{{ url_for('dashboard', page=pagination.next_page) }}"
+    class="pagination-btn"
+  >
+    次のページ →
+  </a>
+  {% endif %}
+</div>
+{% endif %} {% else %}
 <div class="card empty-state">
   <p class="empty-state-title">動画が見つかりませんでした</p>
   <p class="empty-state-description">

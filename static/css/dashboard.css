@@ -178,3 +178,68 @@
   margin-top: 10px;
   flex-shrink: 0;
 }
+
+/* ページネーション */
+.pagination-summary {
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+  padding: 20px 0;
+}
+
+.pagination-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.pagination-btn:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-1px);
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagination-link {
+  display: inline-block;
+  padding: 8px 12px;
+  color: var(--text-color);
+  text-decoration: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.pagination-link:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.pagination-current {
+  display: inline-block;
+  padding: 8px 12px;
+  background-color: var(--primary-color);
+  color: white;
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  font-weight: bold;
+}

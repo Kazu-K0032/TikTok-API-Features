@@ -46,6 +46,8 @@ def get_video_details_batch(access_token: str, video_ids: List[str]) -> Dict[str
 
 def get_video_list(access_token: str, open_id: str, max_count: int = 10) -> List[Dict[str, Any]]:
     """動画一覧を取得。video.listスコープが必要"""
+    # バッチサイズを制限してAPI負荷を軽減
+    batch_size = min(max_count, 20)
     fields = "id,title,cover_image_url,create_time"
     url = f"https://open.tiktokapis.com/v2/video/list/?fields={fields}"
     
@@ -53,7 +55,7 @@ def get_video_list(access_token: str, open_id: str, max_count: int = 10) -> List
         method="POST",
         url=url,
         access_token=access_token,
-        json_data={"max_count": max_count}
+        json_data={"max_count": batch_size}
     )
     
     logger.debug(f"動画リストAPIレスポンス: {response}")

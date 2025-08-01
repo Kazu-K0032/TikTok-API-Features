@@ -1,8 +1,10 @@
+import requests
 from flask import render_template, redirect, url_for, session, request
 from app.auth_service import AuthService
 from app.services.get_profile import get_user_profile
 from app.services.get_video_list import get_video_list, format_create_time
 from app.services.get_video_details import get_video_details
+from app.services.pagination import paginate_videos, get_pagination_summary
 from app.utils import get_logger, validate_token
 from app.config import Config
 
@@ -79,14 +81,31 @@ class Views:
                     profile[field] = 0
             
             # 動画リストを取得
-            videos = get_video_list(token, open_id, max_count=self.config.MAX_VIDEO_COUNT)
-            self.logger.info(f"{len(videos)}個の動画を取得")
+            all_videos = get_video_list(token, open_id, max_count=self.config.MAX_VIDEO_COUNT)
+            self.logger.info(f"{len(all_videos)}個の動画を取得")
             
-            return render_template('dashboard.html', profile=profile, videos=videos)
+            # ページネーション処理
+            page = request.args.get('page', 1, type=int)
+            per_page = 6  # 1ページあたり6件表示
             
+            pagination_info = paginate_videos(all_videos, page=page, per_page=per_page)
+            pagination_summary = get_pagination_summary(pagination_info)
+            
+            return render_template('dashboard.html', 
+                                 profile=profile, 
+                                 videos=pagination_info['videos'],
+                                 pagination=pagination_info,
+                                 pagination_summary=pagination_summary)
+            
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"API通信エラー: {e}")
+            return "API通信でエラーが発生しました。しばらく時間をおいて再度お試しください。", 503
+        except requests.exceptions.Timeout as e:
+            self.logger.error(f"API通信タイムアウト: {e}")
+            return "API通信がタイムアウトしました。しばらく時間をおいて再度お試しください。", 504
         except Exception as e:
-            self.logger.error(f"ダッシュボードでエラー: {str(e)}")
-            return "エラーが発生しました", 500
+            self.logger.error(f"予期しないエラー: {str(e)}")
+            return "システムエラーが発生しました。しばらく時間をおいて再度お試しください。", 500
     
     def video_detail(self, video_id):
         """動画詳細表示"""
@@ -114,6 +133,12 @@ class Views:
             
             return render_template('video_detail.html', d=details)
             
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"動画詳細API通信エラー video_id {video_id}: {e}")
+            return "動画情報の取得で通信エラーが発生しました。しばらく時間をおいて再度お試しください。", 503
+        except requests.exceptions.Timeout as e:
+            self.logger.error(f"動画詳細API通信タイムアウト video_id {video_id}: {e}")
+            return "動画情報の取得でタイムアウトしました。しばらく時間をおいて再度お試しください。", 504
         except Exception as e:
-            self.logger.error(f"動画詳細でエラー video_id {video_id}: {str(e)}")
-            return "エラーが発生しました", 500 
+            self.logger.error(f"動画詳細で予期しないエラー video_id {video_id}: {str(e)}")
+            return "動画情報の取得でシステムエラーが発生しました。しばらく時間をおいて再度お試しください。", 500 
