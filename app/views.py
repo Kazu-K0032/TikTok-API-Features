@@ -1,7 +1,6 @@
 from flask import render_template, redirect, url_for, session, request
 from app.auth_service import AuthService
 from app.services.get_profile import get_user_profile
-from app.services.get_user_stats import get_user_stats
 from app.services.get_video_list import get_video_list
 from app.services.get_video_details import get_video_details
 
@@ -39,17 +38,26 @@ class Views:
         token = session["access_token"]
         open_id = session.get("open_id")
 
-        # プロフィール情報を取得
+        # プロフィール情報と統計情報を一度に取得
         profile = get_user_profile(token)
+        print(f"Profile and stats data retrieved: {profile}")
         
-        # 統計情報を取得（user.info.statsスコープが必要）
-        stats = get_user_stats(token, open_id)
-        # プロフィール情報に統計情報をマージ
-        profile.update(stats)
-        print(f"Stats retrieved: {stats}")
+        # 統計情報が含まれているかチェック
+        stats_fields = ["follower_count", "following_count", "video_count", "likes_count"]
+        missing_stats = [field for field in stats_fields if field not in profile or profile[field] is None]
+        if missing_stats:
+            print(f"Warning: Missing stats fields: {missing_stats}")
+            # 不足している統計情報を0で初期化
+            for field in missing_stats:
+                profile[field] = 0
+        
+        print(f"Final profile data: {profile}")
         
         # 動画リストを取得
         videos = get_video_list(token, open_id, max_count=20)
+        print(f"Retrieved videos: {len(videos)} videos")
+        for i, video in enumerate(videos):
+            print(f"Video {i+1}: {video.get('id')} - {video.get('title', 'No title')}")
 
         return render_template('dashboard.html', profile=profile, videos=videos)
     

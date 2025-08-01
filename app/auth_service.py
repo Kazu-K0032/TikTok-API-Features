@@ -72,7 +72,7 @@ class AuthService:
         
         params = {
             "client_key": self.config.TIKTOK_CLIENT_KEY,
-            "scope": "user.info.basic,user.info.stats,video.list",
+            "scope": "user.info.basic,user.info.profile,user.info.stats,video.list",
             "response_type": "code",
             "redirect_uri": uri,
             "state": self.config.STATE,
