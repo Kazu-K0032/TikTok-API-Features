@@ -2,70 +2,100 @@
 content %}
 <h1>動画詳細情報</h1>
 {% if d and d.id %}
-<div style="display: flex; gap: 20px; align-items: flex-start">
-  <div style="flex: 1">
-    <div class="card">
-      <ul style="list-style: none; padding: 0; margin: 0">
-        <li style="margin-bottom: 10px">
-          <strong>ID:</strong> {{ d.id or '未取得' }}
-        </li>
-        <li style="margin-bottom: 10px">
-          <strong>タイトル:</strong> {{ d.title or 'タイトルなし' }}
-        </li>
-        <li style="margin-bottom: 10px">
-          <strong>再生時間:</strong> {{ d.duration or 0 }} 秒
-        </li>
-        <li style="margin-bottom: 10px">
-          <strong>再生数:</strong> {{ d.view_count or 0 }}
-        </li>
-        <li style="margin-bottom: 10px">
-          <strong>いいね数:</strong> {{ d.like_count or 0 }}
-        </li>
-        <li style="margin-bottom: 10px">
-          <strong>コメント数:</strong> {{ d.comment_count or 0 }}
-        </li>
-        <li style="margin-bottom: 10px">
-          <strong>シェア数:</strong> {{ d.share_count or 0 }}
-        </li>
+<div class="video-detail-container">
+  <div class="video-detail-info">
+    <div class="card video-info-card">
+      <div class="video-info-header">
+        <h2 class="video-info-title">{{ d.title or 'タイトルなし' }}</h2>
+        <div class="video-info-id">ID: {{ d.id or '未取得' }}</div>
+      </div>
+
+      <div class="video-stats-grid">
+        <div class="video-stat-item">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.duration or 0 }}秒</div>
+            <div class="stat-label">再生時間</div>
+          </div>
+        </div>
+
+        <div class="video-stat-item">
+          <div class="stat-icon">👁️</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.view_count or 0 }}</div>
+            <div class="stat-label">再生数</div>
+          </div>
+        </div>
+
+        <div class="video-stat-item">
+          <div class="stat-icon">❤️</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.like_count or 0 }}</div>
+            <div class="stat-label">いいね</div>
+          </div>
+        </div>
+
+        <div class="video-stat-item">
+          <div class="stat-icon">💬</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.comment_count or 0 }}</div>
+            <div class="stat-label">コメント</div>
+          </div>
+        </div>
+
+        <div class="video-stat-item">
+          <div class="stat-icon">📤</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.share_count or 0 }}</div>
+            <div class="stat-label">シェア</div>
+          </div>
+        </div>
+
         {% if d.width and d.height %}
-        <li style="margin-bottom: 10px">
-          <strong>解像度:</strong> {{ d.width }}×{{ d.height }}
-        </li>
-        {% endif %} {% if d.formatted_create_time %}
-        <li style="margin-bottom: 10px">
-          <strong>投稿日時:</strong> {{ d.formatted_create_time }}
-        </li>
+        <div class="video-stat-item">
+          <div class="stat-icon">📐</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.width }}×{{ d.height }}</div>
+            <div class="stat-label">解像度</div>
+          </div>
+        </div>
         {% endif %}
-      </ul>
-      <div style="margin-top: 20px">
-        <a href="{{ d.embed_link }}" target="_blank" class="btn"
-          >▶ 動画を開く</a
-        >
+      </div>
+
+      {% if d.formatted_create_time %}
+      <div class="video-info-meta">
+        <div class="meta-icon">📅</div>
+        <div class="meta-content">
+          <div class="meta-label">投稿日時</div>
+          <div class="meta-value">{{ d.formatted_create_time }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="video-action">
+        <a href="{{ d.embed_link }}" target="_blank" class="btn btn-primary">
+          <span class="btn-icon">▶</span>
+          <span class="btn-text">動画を開く</span>
+        </a>
       </div>
     </div>
-    <a href="{{ url_for('dashboard') }}" class="back-link"
-      >← ダッシュボードへ戻る</a
-    >
   </div>
   {% if d.best_image_url %}
-  <div style="flex: 1; min-width: 300px">
+  <div class="video-detail-thumbnail">
     <div class="card">
       <h3>サムネイル</h3>
       <img
         src="{{ d.best_image_url }}"
-        style="
-          max-width: 100%;
-          height: auto;
-          border-radius: 8px;
-          aspect-ratio: 9/16;
-          object-fit: cover;
-        "
+        class="video-detail-image"
         alt="サムネイル"
       />
     </div>
   </div>
   {% endif %}
 </div>
+<a href="{{ url_for('dashboard') }}" class="back-link back-link-responsive"
+  >← ダッシュボードへ戻る</a
+>
 {% else %}
 <div class="card">
   <p style="text-align: center; color: #666; font-size: 18px">
