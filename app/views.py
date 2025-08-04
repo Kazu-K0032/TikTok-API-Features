@@ -37,7 +37,7 @@ class Views:
         code = request.args.get("code")
         state = request.args.get("state")
         
-        self.logger.info(f"コールバック受信 - コード: {code[:20] if code else 'None'}..., ステート: {state}")
+        # コールバック受信
         
         if not code or not state:
             self.logger.error("コールバックでコードまたはステートが不足しています")
@@ -48,12 +48,12 @@ class Views:
             self.logger.error(f"認証失敗: {error}")
             return error, 400
         
-        self.logger.info("認証成功、ダッシュボードにリダイレクト")
+        # 認証成功、ダッシュボードにリダイレクト
         return redirect(url_for("dashboard"))
     
     def dashboard(self):
         """ダッシュボード表示"""
-        self.logger.info("ダッシュボードアクセス試行")
+        # ダッシュボードアクセス試行
         self.logger.debug(f"ダッシュボードアクセス - セッション内容: {dict(session)}")
         
         # セッションを永続化（24時間）
@@ -77,7 +77,7 @@ class Views:
         token = current_user["access_token"]
         open_id = current_user["open_id"]
         
-        self.logger.info(f"ダッシュボード - トークン発見: {token[:20] if token else 'None'}..., Open ID: {open_id}")
+                    # ダッシュボード - トークン発見
         
         # トークンの有効性チェック
         if not validate_token(token):
@@ -86,12 +86,12 @@ class Views:
             self.user_manager.remove_user(open_id)
             return redirect(url_for("index"))
         
-        self.logger.info("トークン検証成功")
+                    # トークン検証成功
 
         try:
             # プロフィール情報と統計情報を一度に取得
             profile = get_user_profile(token)
-            self.logger.info("プロフィールと統計データの取得に成功")
+            # プロフィールと統計データの取得に成功
             
             # 統計情報が含まれているかチェック
             stats_fields = ["follower_count", "following_count", "video_count", "likes_count"]
@@ -104,7 +104,7 @@ class Views:
             
             # 動画リストを取得
             all_videos = get_video_list(token, open_id, max_count=self.config.MAX_VIDEO_COUNT)
-            self.logger.info(f"{len(all_videos)}個の動画を取得")
+            # 動画を取得
 
             # 総シェア数
             total_share_count = sum(v.get('share_count', 0) or 0 for v in all_videos)
@@ -168,7 +168,7 @@ class Views:
         
         try:
             details = get_video_details(token, video_id)
-            self.logger.info(f"動画詳細を取得 video_id: {video_id}")
+            # 動画詳細を取得
             
             # プロフィール情報を取得してフォロワー数を取得
             profile = get_user_profile(token)
@@ -194,7 +194,17 @@ class Views:
             else:
                 details["formatted_create_time"] = "不明"
             
-            return render_template('video_detail.html', d=details)
+            # 全ユーザー情報を取得
+            all_users = self.user_manager.get_users()
+            
+            # 各ユーザーのセッション期限情報を追加
+            for user in all_users:
+                user['session_info'] = self.user_manager.get_session_expiry_info(user)
+            
+            return render_template('video_detail.html', 
+                                 d=details,
+                                 users=all_users,
+                                 current_user=current_user)
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"動画詳細API通信エラー video_id {video_id}: {e}")
@@ -341,12 +351,12 @@ class Views:
             # 最新情報を常に取得するため、毎回APIを呼び出し
             from app.services.video_upload import get_creator_info
             
-            self.logger.info("アップロードページ表示時: 最新のクリエイター情報を取得中...")
+            # アップロードページ表示時: 最新のクリエイター情報を取得中
             creator_info_response = get_creator_info(token)
-            self.logger.info("アップロードページ表示時: クリエイター情報取得完了")
+            # アップロードページ表示時: クリエイター情報取得完了
             
             # クリエイター情報の詳細をログに出力
-            self.logger.info("=== クリエイター情報詳細 ===")
+            # === クリエイター情報詳細 ===
             self.logger.info(f"レスポンス全体: {creator_info_response}")
             
             # アカウントのプライバシー設定を確認
@@ -394,7 +404,8 @@ class Views:
                     self.logger.info(f"判定結果 (プライベート): {is_private_account}")
                     
                     if is_private_account:
-                        self.logger.info("✅ アップロードページ表示時: アカウントはプライベート設定です")
+                        # ✅ アップロードページ表示時: アカウントはプライベート設定です
+                        pass
                     else:
                         self.logger.warning("⚠️ アップロードページ表示時: アカウントがプライベート設定ではありません")
                         self.logger.warning("TikTokアプリでアカウントをプライベート設定に変更してください")
@@ -405,7 +416,7 @@ class Views:
                 self.logger.warning("クリエイター情報の形式が不正です")
                 self.logger.warning(f"レスポンス構造: {list(creator_info_response.keys()) if isinstance(creator_info_response, dict) else 'Not a dict'}")
             
-            self.logger.info("=== クリエイター情報詳細終了 ===")
+            # === クリエイター情報詳細終了 ===
                 
         except Exception as e:
             self.logger.error(f"アップロードページ表示時: クリエイター情報取得エラー: {e}")
@@ -441,7 +452,17 @@ class Views:
             self.logger.error(f"アカウント状況設定エラー: {e}")
             account_status['error'] = 'アカウント情報の取得に失敗しました'
         
-        return render_template('video_upload.html', account_status=account_status)
+        # 全ユーザー情報を取得
+        all_users = self.user_manager.get_users()
+        
+        # 各ユーザーのセッション期限情報を追加
+        for user in all_users:
+            user['session_info'] = self.user_manager.get_session_expiry_info(user)
+        
+        return render_template('video_upload.html', 
+                             account_status=account_status,
+                             users=all_users,
+                             current_user=current_user)
     
     def api_upload_video(self):
         """動画アップロードAPI"""

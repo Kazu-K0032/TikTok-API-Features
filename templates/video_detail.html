@@ -119,4 +119,8 @@ extra_css %}
     ※ 動画が存在しないか、アクセス権限がない可能性があります
   </p>
 </div>
-{% endif %} {% endblock %}
+{% endif %} {% block extra_js %}
+<script src="{{ url_for('static', filename='js/utils/globals.js') }}"></script>
+<script src="{{ url_for('static', filename='js/utils/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/video-detail.js') }}"></script>
+{% endblock %} {% endblock %}

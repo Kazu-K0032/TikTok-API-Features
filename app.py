@@ -21,14 +21,7 @@ def create_app():
     app.config['SESSION_COOKIE_HTTPONLY'] = config.SESSION_COOKIE_HTTPONLY
     app.config['SESSION_COOKIE_SAMESITE'] = config.SESSION_COOKIE_SAMESITE
     app.config['SESSION_COOKIE_DOMAIN'] = config.SESSION_COOKIE_DOMAIN
-    
-    # セッション設定をログに出力
-    logger = logging.getLogger(__name__)
-    logger.info(f"セッション設定: PERMANENT_SESSION_LIFETIME = {app.config.get('PERMANENT_SESSION_LIFETIME')}")
-    logger.info(f"セッション設定: SESSION_COOKIE_SECURE = {app.config.get('SESSION_COOKIE_SECURE')}")
-    logger.info(f"セッション設定: SESSION_COOKIE_HTTPONLY = {app.config.get('SESSION_COOKIE_HTTPONLY')}")
-    logger.info(f"セッション設定: SESSION_COOKIE_SAMESITE = {app.config.get('SESSION_COOKIE_SAMESITE')}")
-    
+        
     # ビューコントローラーを初期化
     views = Views()
     
@@ -101,4 +94,8 @@ if __name__ == "__main__":
     # python app.py
     config = Config()
     app = create_app()
-    app.run(debug=config.DEBUG, port=config.PORT) 
+    
+    # サーバー起動前にリンクを出力
+    print(f"ローカルアクセス: http://127.0.0.1:{config.PORT}")
+    
+    app.run(debug=config.DEBUG, port=config.PORT, host='0.0.0.0') 

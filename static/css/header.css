@@ -26,6 +26,17 @@
   color: white;
 }
 
+.header-link {
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.header-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+}
+
 /* ユーザーセレクター */
 .user-selector {
   flex: 1;

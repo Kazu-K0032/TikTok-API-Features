@@ -7,15 +7,22 @@ from typing import Optional
 def setup_logging() -> None:
     """ログ設定を初期化"""
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    console_output = os.getenv("CONSOLE_LOG", "false").lower() == "true"
+    
+    handlers = [logging.FileHandler('app.log', encoding='utf-8')]
+    
+    # 環境変数でターミナル出力を制御
+    if console_output:
+        handlers.append(logging.StreamHandler())
     
     logging.basicConfig(
         level=getattr(logging, log_level),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler('app.log', encoding='utf-8')
-        ]
+        handlers=handlers
     )
+    
+    # WerkzeugのINFOログを抑制
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 def get_logger(name: str) -> logging.Logger:
     """指定された名前のロガーを取得"""

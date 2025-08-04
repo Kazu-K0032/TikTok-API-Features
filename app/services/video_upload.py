@@ -373,7 +373,35 @@ def upload_video_complete(
         except Exception as e:
             logger.warning(f"投稿ステータス取得エラー（アップロードは成功）: {e}")
         
-        return True, "動画アップロードが完了しました", publish_id
+        # 動画リンクとプロフィールリンクを生成
+        username = creator_info_data.get('creator_username', '')
+        
+        # publish_idから動画IDを抽出
+        # 例: v_pub_file~v2-1.7534632449491552261 → 7534632449491552261
+        # 例: v_pub_file~v2-1.7534635204204546104 → 7534635204204546104
+        if '~' in publish_id:
+            # ~の後の部分を取得
+            parts = publish_id.split('~')
+            if len(parts) > 1:
+                # 最後の部分から数字を抽出
+                last_part = parts[-1]
+                # 数字のみを抽出（ドットやその他の文字を除去）
+                import re
+                numbers = re.findall(r'\d+', last_part)
+                if numbers:
+                    video_id = numbers[-1]  # 最後の数字を使用
+                else:
+                    video_id = last_part
+            else:
+                video_id = publish_id
+        else:
+            video_id = publish_id
+        
+        profile_link = f"https://www.tiktok.com/@{username}"
+        
+        success_message = f"動画アップロードが完了しました。"
+        
+        return True, success_message, publish_id
         
     except Exception as e:
         logger.error(f"動画アップロードプロセスエラー: {e}")
