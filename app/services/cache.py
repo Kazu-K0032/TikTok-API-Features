@@ -85,4 +85,10 @@ class Cache:
 
 # グローバルキャッシュインスタンス
 video_cache = Cache(ttl=600)  # 動画データ: 10分
-profile_cache = Cache(ttl=300)  # プロフィールデータ: 5分 
+profile_cache = Cache(ttl=300)  # プロフィールデータ: 5分
+
+def clear_all_caches():
+    """すべてのキャッシュをクリア"""
+    video_cache.clear()
+    profile_cache.clear()
+    logger.info("すべてのキャッシュをクリアしました") 

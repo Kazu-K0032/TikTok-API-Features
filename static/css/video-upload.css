@@ -1,0 +1,434 @@
+/* 動画アップロードページ専用スタイル */
+
+.upload-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.upload-container h1 {
+  text-align: center;
+  color: #1a1a1a;
+  margin-bottom: 30px;
+  font-size: 2.5em;
+  font-weight: 700;
+}
+
+.upload-card {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+.form-group input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #ff0050;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.form-group input[type="file"]:hover {
+  border-color: #e6004c;
+  background: #fff5f7;
+}
+
+.form-group textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 1em;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ff0050;
+  box-shadow: 0 0 0 3px rgba(255, 0, 80, 0.1);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 1em;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #ff0050;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 4px;
+}
+
+.file-info {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.file-info p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.file-info p span {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1em;
+  color: #1a1a1a;
+  transition: color 0.3s ease;
+}
+
+.checkbox-label:hover {
+  color: #ff0050;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  accent-color: #ff0050;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  min-width: 160px;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #ff0050 0%, #e6004c 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(255, 0, 80, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(255, 0, 80, 0.4);
+  background: linear-gradient(135deg, #e6004c 0%, #cc0040 100%);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(108, 117, 125, 0.4);
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+}
+
+.btn-icon {
+  font-size: 1.2em;
+}
+
+/* アップロード進捗 */
+.upload-progress {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.progress-header h3 {
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-size: 1.5em;
+}
+
+.progress-status {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 24px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff0050 0%, #e6004c 100%);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.progress-text {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* 結果表示 */
+.upload-result {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.result-icon {
+  font-size: 4em;
+  margin-bottom: 16px;
+}
+
+.result-icon.success {
+  color: #4caf50;
+}
+
+.result-icon.error {
+  color: #f44336;
+}
+
+.upload-result h3 {
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-size: 1.8em;
+}
+
+.upload-result p {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 24px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .upload-container {
+    padding: 16px;
+  }
+
+  .upload-card {
+    padding: 24px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-container h1 {
+    font-size: 2em;
+  }
+
+  .upload-card {
+    padding: 20px;
+  }
+
+  .progress-header h3 {
+    font-size: 1.3em;
+  }
+
+  .upload-result h3 {
+    font-size: 1.5em;
+  }
+}
+
+/* 通知セクション */
+.upload-notice {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+/* アカウント状況セクション */
+.account-status {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.account-status h3 {
+  color: #1565c0;
+  margin: 0 0 12px 0;
+  font-size: 1.2em;
+}
+
+.status-info {
+  color: #1565c0;
+}
+
+.status-info p {
+  margin: 0 0 8px 0;
+}
+
+.status-info ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.status-info li {
+  margin-bottom: 4px;
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.status-error {
+  color: #d32f2f;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.status-error p {
+  margin: 0;
+}
+
+.upload-notice h3 {
+  color: #856404;
+  margin: 0 0 12px 0;
+  font-size: 1.2em;
+}
+
+.upload-notice p {
+  color: #856404;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.upload-notice ul {
+  color: #856404;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.upload-notice li {
+  margin-bottom: 8px;
+}
+
+/* 同意宣言とヘルプテキスト */
+.consent-declaration {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.consent-declaration .checkbox-label {
+  font-weight: 600;
+  color: #856404;
+}
+
+.form-help {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #1565c0;
+}
+
+.form-help p {
+  margin: 0 0 8px 0;
+}
+
+.form-help p:last-child {
+  margin-bottom: 0;
+}

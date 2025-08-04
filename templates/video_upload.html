@@ -1,0 +1,348 @@
+{% extends "base.html" %} {% block title %}動画アップロード{% endblock %} {%
+block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/video-upload.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="upload-container">
+  <h1>動画アップロード</h1>
+
+  <div class="upload-notice">
+    <h3>⚠️ 重要な注意事項</h3>
+    <p><strong>未監査アプリケーションの場合:</strong></p>
+    <ul>
+      <li>
+        TikTokアカウントが<strong>プライベート設定</strong>である必要があります
+      </li>
+      <li>
+        TikTokアプリで「設定」→「プライバシー」→「アカウント」を「プライベート」に設定してください
+      </li>
+      <li>投稿は「自分だけ」の設定でのみ可能です</li>
+    </ul>
+  </div>
+
+  {% if account_status %}
+  <div class="account-status">
+    <h3>📊 アカウント状況</h3>
+    {% if account_status.error %}
+    <div class="status-error">
+      <p>❌ {{ account_status.error }}</p>
+    </div>
+    {% else %}
+    <div class="status-info">
+      {% if account_status.is_private %}
+      <p>✅ <strong>アカウントはプライベート設定です</strong></p>
+      <p>投稿が可能です</p>
+      {% else %}
+      <p>❌ <strong>アカウントがプライベート設定ではありません</strong></p>
+      <p>TikTokアプリでアカウントをプライベート設定に変更してください</p>
+      {% endif %} {% if account_status.privacy_options %}
+      <p><strong>利用可能なプライバシー設定:</strong></p>
+      <ul>
+        {% for option in account_status.privacy_options %}
+        <li>{{ option }}</li>
+        {% endfor %}
+      </ul>
+
+      <p><strong>判定基準:</strong></p>
+      <ul>
+        <li>
+          ✅ プライベートアカウント:
+          <code>FOLLOWER_OF_CREATOR</code
+          >が含まれ、<code>PUBLIC_TO_EVERYONE</code>が含まれない
+        </li>
+        <li>
+          ❌ パブリックアカウント: <code>PUBLIC_TO_EVERYONE</code>が含まれる
+        </li>
+      </ul>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="upload-card">
+    <form id="upload-form" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="video-file">動画ファイル</label>
+        <input
+          type="file"
+          id="video-file"
+          name="video_file"
+          accept="video/*"
+          required
+        />
+        <div class="file-info" id="file-info" style="display: none">
+          <p>ファイル名: <span id="file-name"></span></p>
+          <p>サイズ: <span id="file-size"></span></p>
+          <p>形式: <span id="file-type"></span></p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="video-title">キャプション</label>
+        <textarea
+          id="video-title"
+          name="title"
+          placeholder="動画の説明を入力してください..."
+          maxlength="2200"
+          required
+        ></textarea>
+        <div class="char-count"><span id="char-count">0</span>/2200</div>
+      </div>
+
+      <div class="form-group">
+        <label for="privacy-level">プライバシー設定 *</label>
+        <select id="privacy-level" name="privacy_level" required>
+          <option value="">プライバシー設定を選択してください</option>
+          <option value="SELF_ONLY">自分だけ</option>
+          <option value="MUTUAL_FOLLOW_FRIENDS">相互フォロー</option>
+          <option value="PUBLIC_TO_EVERYONE">公開</option>
+        </select>
+        <div class="form-help">
+          <p>
+            <strong>注意:</strong>
+            未監査のアプリケーションは「自分だけ」の設定でのみ投稿可能です。
+          </p>
+          <p>公開投稿を行うには、TikTokによる審査が必要です。</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>投稿設定</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              id="disable-comment"
+              name="disable_comment"
+            />
+            <span class="checkmark"></span>
+            コメントを無効にする
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="disable-duet" name="disable_duet" />
+            <span class="checkmark"></span>
+            デュエットを無効にする
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="disable-stitch" name="disable_stitch" />
+            <span class="checkmark"></span>
+            ステッチを無効にする
+          </label>
+        </div>
+        <div class="form-help">
+          <p>
+            上記の設定は、デフォルトでは有効になっています。無効にしたい場合はチェックしてください。
+          </p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="consent-declaration">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              id="user-consent"
+              name="user_consent"
+              required
+            />
+            <span class="checkmark"></span>
+            投稿することで、TikTokの音楽使用確認に同意します
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" id="upload-btn" class="btn btn-primary">
+          <span class="btn-icon">📤</span>
+          <span class="btn-text">アップロード</span>
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+          <span class="btn-icon">←</span>
+          <span class="btn-text">キャンセル</span>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- アップロード進捗 -->
+  <div id="upload-progress" class="upload-progress" style="display: none">
+    <div class="progress-header">
+      <h3>アップロード中...</h3>
+      <div class="progress-status" id="progress-status">初期化中...</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-text" id="progress-text">0%</div>
+  </div>
+
+  <!-- 結果表示 -->
+  <div id="upload-result" class="upload-result" style="display: none">
+    <div class="result-icon" id="result-icon">✅</div>
+    <h3 id="result-title">アップロード完了</h3>
+    <p id="result-message">動画のアップロードが完了しました。</p>
+    <div class="result-actions">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary"
+        >ダッシュボードに戻る</a
+      >
+      <button id="upload-another" class="btn btn-secondary">
+        別の動画をアップロード
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("upload-form");
+    const fileInput = document.getElementById("video-file");
+    const titleInput = document.getElementById("video-title");
+    const charCount = document.getElementById("char-count");
+    const fileInfo = document.getElementById("file-info");
+    const progressDiv = document.getElementById("upload-progress");
+    const resultDiv = document.getElementById("upload-result");
+
+    // ファイル選択時の処理
+    fileInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById("file-name").textContent = file.name;
+        document.getElementById("file-size").textContent = formatFileSize(
+          file.size
+        );
+        document.getElementById("file-type").textContent = file.type;
+        fileInfo.style.display = "block";
+      } else {
+        fileInfo.style.display = "none";
+      }
+    });
+
+    // 文字数カウント
+    titleInput.addEventListener("input", function () {
+      const count = this.value.length;
+      charCount.textContent = count;
+      if (count > 2000) {
+        charCount.style.color = "#ff4444";
+      } else if (count > 1800) {
+        charCount.style.color = "#ffaa00";
+      } else {
+        charCount.style.color = "#666";
+      }
+    });
+
+    // フォーム送信
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      // バリデーション
+      const privacyLevel = document.getElementById("privacy-level").value;
+      const userConsent = document.getElementById("user-consent").checked;
+
+      if (!privacyLevel) {
+        alert("プライバシー設定を選択してください。");
+        return;
+      }
+
+      if (!userConsent) {
+        alert("TikTokの音楽使用確認に同意してください。");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const uploadBtn = document.getElementById("upload-btn");
+
+      // ボタンを無効化
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML =
+        '<span class="btn-icon">⏳</span><span class="btn-text">アップロード中...</span>';
+
+      // 進捗表示
+      progressDiv.style.display = "block";
+      form.style.display = "none";
+
+      // アップロード実行
+      uploadVideo(formData);
+    });
+
+    // 別の動画をアップロード
+    document
+      .getElementById("upload-another")
+      .addEventListener("click", function () {
+        resultDiv.style.display = "none";
+        form.style.display = "block";
+        form.reset();
+        fileInfo.style.display = "none";
+        charCount.textContent = "0";
+        charCount.style.color = "#666";
+      });
+  });
+
+  function uploadVideo(formData) {
+    const progressStatus = document.getElementById("progress-status");
+    const progressFill = document.getElementById("progress-fill");
+    const progressText = document.getElementById("progress-text");
+
+    fetch("/api/upload-video", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showResult(true, "アップロード完了", data.message);
+        } else {
+          let errorMessage = data.error;
+          if (errorMessage.includes("Content Posting API")) {
+            errorMessage =
+              "Content Posting APIの権限が不足しています。アプリの設定でContent Posting APIを有効にしてください。";
+          } else if (errorMessage.includes("未監査クライアント")) {
+            errorMessage =
+              "未監査クライアントはプライベートアカウントのみに投稿できます。TikTokアプリでアカウントをプライベート設定に変更してください。";
+          }
+          showResult(false, "アップロード失敗", errorMessage);
+        }
+      })
+      .catch((error) => {
+        console.error("アップロードエラー:", error);
+        showResult(
+          false,
+          "アップロード失敗",
+          "ネットワークエラーが発生しました。"
+        );
+      });
+  }
+
+  function showResult(success, title, message) {
+    const progressDiv = document.getElementById("upload-progress");
+    const resultDiv = document.getElementById("upload-result");
+    const resultIcon = document.getElementById("result-icon");
+    const resultTitle = document.getElementById("result-title");
+    const resultMessage = document.getElementById("result-message");
+
+    progressDiv.style.display = "none";
+    resultDiv.style.display = "block";
+
+    if (success) {
+      resultIcon.textContent = "✅";
+      resultIcon.style.color = "#4CAF50";
+    } else {
+      resultIcon.textContent = "❌";
+      resultIcon.style.color = "#f44336";
+    }
+
+    resultTitle.textContent = title;
+    resultMessage.textContent = message;
+  }
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+</script>
+{% endblock %}

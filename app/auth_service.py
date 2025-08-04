@@ -5,6 +5,7 @@ import requests
 import logging
 from flask import request, session
 from app.config import Config
+from app.services.user_manager import UserManager
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,7 @@ class AuthService:
     
     def __init__(self):
         self.config = Config()
+        self.user_manager = UserManager()
         # メモリ内ストレージ（セッションの代替）
         self.session_data = {}
     
@@ -46,9 +48,19 @@ class AuthService:
     
     def start_auth(self):
         """認証プロセスを開始"""
-        # 古いセッションデータをクリア
-        session.clear()
+        # 既存のユーザー情報を保持し、PKCE関連のデータのみクリア
+        existing_users = session.get('users', [])
+        existing_current_user = session.get('current_user_open_id')
+        
+        # PKCE関連のデータのみクリア
+        session.pop('code_verifier', None)
         self.session_data.clear()  # メモリ保存もクリア
+        
+        # 既存のユーザー情報を復元
+        if existing_users:
+            session['users'] = existing_users
+        if existing_current_user:
+            session['current_user_open_id'] = existing_current_user
         
         uri = self.get_redirect_uri()
         
@@ -75,7 +87,7 @@ class AuthService:
         
         params = {
             "client_key": self.config.TIKTOK_CLIENT_KEY,
-            "scope": "user.info.basic,user.info.profile,user.info.stats,video.list",
+            "scope": "user.info.basic,user.info.profile,user.info.stats,video.list,video.publish,video.upload",
             "response_type": "code",
             "redirect_uri": uri,
             "state": self.config.STATE,
@@ -166,21 +178,40 @@ class AuthService:
                 logger.error(f"レスポンスでアクセストークンが空です: {response_json}")
                 return None, f"Access token is empty in response: {response_json}"
 
-            # セッションに保存
-            session["access_token"] = access_token
-            session["open_id"] = open_id
-            session.modified = True  # セッション変更を強制保存
-            
-            # code_verifierを削除（セキュリティのため）
-            session.pop('code_verifier', None)
-            
-            logger.info(f"認証成功、セッション保存済み - トークン: {access_token[:20]}..., Open ID: {open_id}")
-            logger.debug(f"保存後のセッション: {dict(session)}")
-            return {"access_token": access_token, "open_id": open_id}, None
+            # ユーザーをセッションに追加
+            if self.user_manager.add_user(access_token, open_id):
+                # 最初のユーザーまたは唯一のユーザーの場合、現在のユーザーに設定
+                if self.user_manager.get_user_count() == 1:
+                    self.user_manager.set_current_user(open_id)
+                
+                # セッションを永続化（24時間）
+                session.permanent = True
+                session.modified = True
+                
+                # code_verifierを削除（セキュリティのため）
+                session.pop('code_verifier', None)
+                
+                logger.info(f"認証成功、ユーザー追加済み - トークン: {access_token[:20]}..., Open ID: {open_id}")
+                logger.debug(f"保存後のセッション: {dict(session)}")
+                return {"access_token": access_token, "open_id": open_id}, None
+            else:
+                logger.error("ユーザーの追加に失敗しました")
+                return None, "ユーザーの追加に失敗しました"
             
         except requests.exceptions.RequestException as e:
             logger.error(f"トークン交換中のリクエスト例外: {e}")
             return None, f"Network error: {str(e)}"
         except Exception as e:
             logger.error(f"トークン交換中の予期しないエラー: {e}")
-            return None, f"Unexpected error: {str(e)}" 
+            return None, f"Unexpected error: {str(e)}"
+    
+    def is_authenticated(self):
+        """認証済みかどうかをチェック"""
+        return self.user_manager.get_user_count() > 0
+    
+    def get_current_user_token(self):
+        """現在のユーザーのアクセストークンを取得"""
+        current_user = self.user_manager.get_current_user()
+        if current_user:
+            return current_user.get('access_token')
+        return None 

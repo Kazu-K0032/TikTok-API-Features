@@ -47,3 +47,6 @@ Thumbs.db
 # Flask Session Files
 /tmp/flask_session/
 flask_session/
+
+# tmp
+tmp/

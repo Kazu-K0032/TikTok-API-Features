@@ -65,6 +65,14 @@ extra_css %}
           </div>
         </div>
         {% endif %}
+
+        <div class="video-stat-item">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.engagement_rate_formatted }}</div>
+            <div class="stat-label">平均エンゲージメント</div>
+          </div>
+        </div>
       </div>
 
       {% if d.formatted_create_time %}
