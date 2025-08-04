@@ -19,7 +19,7 @@ def get_user_profile(access_token: str) -> Dict[str, Any]:
         return cached_data
     
     # user.info.basic, user.info.profile, user.info.stats スコープで取得可能な情報
-    fields = "open_id,display_name,avatar_url,bio_description,profile_web_link,profile_deep_link,is_verified,follower_count,following_count,video_count,likes_count"
+    fields = "open_id,display_name,username,avatar_url,bio_description,profile_web_link,profile_deep_link,is_verified,follower_count,following_count,video_count,likes_count"
     
     response = make_tiktok_api_request(
         method="GET",

@@ -17,7 +17,8 @@ class Config:
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
     SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "False").lower() == "true"
     SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
-    PERMANENT_SESSION_LIFETIME = int(os.getenv("PERMANENT_SESSION_LIFETIME", "300"))
+    # 24時間セッション（86400秒）
+    PERMANENT_SESSION_LIFETIME = int(os.getenv("PERMANENT_SESSION_LIFETIME", "86400"))
     SESSION_COOKIE_DOMAIN = os.getenv("SESSION_COOKIE_DOMAIN")
     
     # TikTok API設定
@@ -30,4 +31,7 @@ class Config:
     
     # API設定
     DEFAULT_VIDEO_COUNT = int(os.getenv("DEFAULT_VIDEO_COUNT", "10"))
-    MAX_VIDEO_COUNT = int(os.getenv("MAX_VIDEO_COUNT", "20")) 
+    MAX_VIDEO_COUNT = int(os.getenv("MAX_VIDEO_COUNT", "20"))
+    
+    # 複数ユーザー管理設定
+    MAX_USERS_PER_SESSION = int(os.getenv("MAX_USERS_PER_SESSION", "5")) 

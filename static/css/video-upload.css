@@ -1,0 +1,560 @@
+/* 動画アップロードページ専用スタイル */
+
+/* 動画アップロードページ専用のコンテナ */
+.upload-container {
+  max-width: var(--container-max-width);
+  min-width: 375px;
+  margin: 0 auto;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* 1440px以上の場合、コンテンツを中央に固定 */
+@media (min-width: 1440px) {
+  .upload-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0;
+  }
+}
+
+.upload-container h1 {
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xl);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.upload-card {
+  background: linear-gradient(
+    135deg,
+    var(--bg-primary) 0%,
+    var(--bg-secondary) 100%
+  );
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-medium);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-base);
+}
+
+.form-group input[type="file"] {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.form-group input[type="file"]:hover {
+  border-color: var(--color-primary-dark);
+  background: #fff5f7;
+}
+
+.form-group textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--spacing-md);
+  border: 2px solid var(--border-light);
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
+  font-family: var(--font-primary);
+  resize: vertical;
+  transition: var(--transition-normal);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 0, 80, 0.1);
+}
+
+.form-group select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid var(--border-light);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.char-count {
+  text-align: right;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-xs);
+}
+
+.file-info {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.file-info p {
+  margin: 4px 0;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.file-info p span {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1em;
+  color: #1a1a1a;
+  transition: color 0.3s ease;
+}
+
+.checkbox-label:hover {
+  color: #ff0050;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  accent-color: #ff0050;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition-normal);
+  min-width: 160px;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-white);
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    #cc0040 100%
+  );
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  color: var(--color-white);
+  box-shadow: var(--shadow-secondary);
+  border: 1px solid #6c757d;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+  border-color: #5a6268;
+}
+
+.btn-icon {
+  font-size: 1.2em;
+}
+
+.upload-progress {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.progress-header h3 {
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-size: 1.5em;
+}
+
+.progress-status {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 24px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff0050 0%, #e6004c 100%);
+  border-radius: 6px;
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+.progress-text {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* 結果表示 */
+.upload-result {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.result-icon {
+  font-size: 4em;
+  margin-bottom: 16px;
+}
+
+.result-icon.success {
+  color: #4caf50;
+}
+
+.result-icon.error {
+  color: #f44336;
+}
+
+.upload-result h3 {
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-size: 1.8em;
+}
+
+.upload-result p {
+  color: #666;
+  font-size: 1.1em;
+  margin-bottom: 24px;
+}
+
+.result-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .upload-container {
+    padding: 0;
+    min-width: 375px;
+    max-width: 100vw;
+  }
+
+  .upload-card {
+    margin: 0;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: 0;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .result-actions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-container {
+    padding: 0;
+    min-width: 375px;
+  }
+
+  .upload-container h1 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .upload-card {
+    margin: 0;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .form-actions {
+    padding: 0;
+  }
+
+  .progress-header h3 {
+    font-size: var(--font-size-xl);
+  }
+
+  .upload-result h3 {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* 375px未満の場合は最小幅を保証 */
+@media (max-width: 374px) {
+  .upload-container {
+    min-width: 375px;
+    overflow-x: auto;
+    padding: 0;
+  }
+
+  .upload-card {
+    margin: 0;
+    width: 100%;
+    align-self: stretch;
+  }
+}
+
+/* 通知セクション */
+.upload-notice {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+/* アカウント状況セクション */
+.account-status {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
+  align-self: stretch;
+}
+
+.account-status h3 {
+  color: #1565c0;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-xl);
+}
+
+.status-info {
+  color: #1565c0;
+}
+
+.status-info p {
+  margin: 0 0 8px 0;
+}
+
+.status-info ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.status-info li {
+  margin-bottom: 4px;
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.status-error {
+  color: #d32f2f;
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.status-error p {
+  margin: 0;
+}
+
+.upload-notice h3 {
+  color: #856404;
+  margin: 0 0 12px 0;
+  font-size: 1.2em;
+}
+
+.upload-notice p {
+  color: #856404;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.upload-notice ul {
+  color: #856404;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.upload-notice li {
+  margin-bottom: 8px;
+}
+
+/* 同意宣言とヘルプテキスト */
+.consent-declaration {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.consent-declaration .checkbox-label {
+  font-weight: 600;
+  color: #856404;
+}
+
+.form-help {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #1565c0;
+}
+
+.form-help p {
+  margin: 0 0 8px 0;
+}
+
+.form-help p:last-child {
+  margin-bottom: 0;
+}
+
+/* 結果リンクのスタイル */
+.result-link {
+  color: #ff0050;
+  text-decoration: none;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.result-link:hover {
+  text-decoration: underline;
+  color: #d40040;
+}
+
+/* プロフィールボタンのスタイル */
+.profile-btn {
+  display: inline-block;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-white);
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  transition: var(--transition-normal);
+  box-shadow: var(--shadow-primary);
+}
+
+.profile-btn:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    #cc0040 100%
+  );
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+  color: var(--color-white);
+  text-decoration: none;
+}

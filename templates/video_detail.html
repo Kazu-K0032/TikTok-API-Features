@@ -65,6 +65,14 @@ extra_css %}
           </div>
         </div>
         {% endif %}
+
+        <div class="video-stat-item">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <div class="stat-value">{{ d.engagement_rate_formatted }}</div>
+            <div class="stat-label">平均エンゲージメント</div>
+          </div>
+        </div>
       </div>
 
       {% if d.formatted_create_time %}
@@ -111,4 +119,8 @@ extra_css %}
     ※ 動画が存在しないか、アクセス権限がない可能性があります
   </p>
 </div>
-{% endif %} {% endblock %}
+{% endif %} {% block extra_js %}
+<script src="{{ url_for('static', filename='js/utils/globals.js') }}"></script>
+<script src="{{ url_for('static', filename='js/utils/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/video-detail.js') }}"></script>
+{% endblock %} {% endblock %}

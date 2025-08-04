@@ -5,152 +5,201 @@ extra_css %}
   href="{{ url_for('static', filename='css/dashboard.css') }}"
 />
 {% endblock %} {% block content %}
-<h1>ユーザープロフィール</h1>
-<div class="card">
-  <div class="profile-container">
-    <div>
-      <img
-        src="{{ profile.avatar_url or '' }}"
-        alt="アバター"
-        class="profile-avatar"
-        loading="lazy"
-        onerror="this.style.display='none'"
-      />
+<div id="dashboard-content">
+  <h1>ユーザープロフィール</h1>
+  <div class="card">
+    <div class="profile-container">
+      <div>
+        <img
+          src="{{ profile.avatar_url or '' }}"
+          alt="アバター"
+          class="profile-avatar"
+          loading="lazy"
+          onerror="this.style.display='none'"
+          id="profile-avatar"
+        />
+      </div>
+      <div>
+        <h2 class="profile-name" id="profile-name">
+          {{ profile.display_name or '未設定' }}
+        </h2>
+        {% if profile.username %}
+        <p class="profile-username" id="profile-username">
+          <strong>ユーザー名:</strong> @{{ profile.username }}
+        </p>
+        {% endif %}
+        <p class="profile-openid">
+          Open ID:
+          <code id="profile-openid">{{ profile.open_id or '未取得' }}</code>
+        </p>
+        {% if profile.bio_description %}
+        <p class="profile-bio" id="profile-bio">
+          <strong>自己紹介:</strong> {{ profile.bio_description }}
+        </p>
+        {% endif %} {% if profile.is_verified %}
+        <p class="profile-verified" id="profile-verified">
+          ✓ 認証済みアカウント
+        </p>
+        {% endif %} {% if profile.profile_web_link %}
+        <p class="profile-link" id="profile-link">
+          <a href="{{ profile.profile_web_link }}" target="_blank">
+            🌐 プロフィールページを開く
+          </a>
+        </p>
+        {% endif %}
+      </div>
     </div>
-    <div>
-      <h2 class="profile-name">{{ profile.display_name or '未設定' }}</h2>
-      <p class="profile-openid">
-        Open ID: <code>{{ profile.open_id or '未取得' }}</code>
-      </p>
-      {% if profile.bio_description %}
-      <p class="profile-bio">
-        <strong>自己紹介:</strong> {{ profile.bio_description }}
-      </p>
-      {% endif %} {% if profile.is_verified %}
-      <p class="profile-verified">✓ 認証済みアカウント</p>
-      {% endif %} {% if profile.profile_web_link %}
-      <p class="profile-link">
-        <a href="{{ profile.profile_web_link }}" target="_blank">
-          🌐 プロフィールページを開く
-        </a>
-      </p>
-      {% endif %}
+  </div>
+
+  <h2>統計情報</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="following-count">
+        {{ profile.following_count }}
+      </div>
+      <div class="stat-label">フォロー数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="follower-count">
+        {{ profile.follower_count }}
+      </div>
+      <div class="stat-label">フォロワー数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="likes-count">{{ profile.likes_count }}</div>
+      <div class="stat-label">いいね数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="video-count">{{ profile.video_count }}</div>
+      <div class="stat-label">動画数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="share-count">{{ total_share_count }}</div>
+      <div class="stat-label">総シェア数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="avg-engagement-rate">
+        {{ avg_engagement_rate }}%
+      </div>
+      <div class="stat-label">平均エンゲージメント</div>
     </div>
   </div>
-</div>
 
-<h2>統計情報</h2>
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-number">{{ profile.following_count }}</div>
-    <div class="stat-label">フォロー数</div>
+  <h2>投稿動画一覧</h2>
+  <div class="dashboard-actions">
+    <a href="{{ url_for('video_upload') }}" class="btn btn-primary">
+      <span class="btn-icon">📤</span>
+      <span class="btn-text">動画をアップロード</span>
+    </a>
   </div>
-  <div class="stat-card">
-    <div class="stat-number">{{ profile.follower_count }}</div>
-    <div class="stat-label">フォロワー数</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number">{{ profile.likes_count }}</div>
-    <div class="stat-label">いいね数</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number">{{ profile.video_count }}</div>
-    <div class="stat-label">動画数</div>
-  </div>
-</div>
-<p>
-  <small
-    >※ 統計情報が0の場合は、user.info.stats
-    スコープの認証が必要か、実際の値が0の可能性があります</small
-  >
-</p>
-
-<h2>投稿動画一覧</h2>
-{% if videos %} {% if pagination_summary %}
-<div class="pagination-summary">
-  <p>{{ pagination_summary }}</p>
-</div>
-{% endif %}
-
-<div class="video-grid">
-  {% for v in videos %}
-  <div class="video-card">
-    {% if v.best_image_url %}
-    <div class="video-thumbnail">
-      <img
-        src="{{ v.best_image_url }}"
-        alt="サムネイル"
-        class="video-cover"
-        loading="lazy"
-      />
+  <div id="videos-container">
+    {% if videos %} {% if pagination_summary %}
+    <div class="pagination-summary">
+      <p>{{ pagination_summary }}</p>
     </div>
     {% endif %}
-    <h3 class="video-title">{{ v.title or 'タイトルなし' }}</h3>
-    <div class="video-meta">
-      <div class="video-id"><strong>ID:</strong> <code>{{ v.id }}</code></div>
-      <div class="video-date">
-        <strong>投稿日:</strong> {{ v.formatted_create_time }}
+
+    <div class="video-grid" id="video-grid">
+      {% for v in videos %}
+      <div class="video-card">
+        {% if v.best_image_url %}
+        <div class="video-thumbnail">
+          <img
+            src="{{ v.best_image_url }}"
+            alt="サムネイル"
+            class="video-cover"
+            loading="lazy"
+          />
+        </div>
+        {% endif %}
+        <h3 class="video-title">{{ v.title or 'タイトルなし' }}</h3>
+        <div class="video-meta">
+          <div class="video-id">
+            <strong>ID:</strong> <code>{{ v.id }}</code>
+          </div>
+          <div class="video-date">
+            <strong>投稿日:</strong> {{ v.formatted_create_time }}
+          </div>
+        </div>
+        <div class="video-stats">
+          <div>
+            <div class="video-stat-number">{{ v.view_count or 0 }}</div>
+            <div class="video-stat-label">再生数</div>
+          </div>
+          <div>
+            <div class="video-stat-number">{{ v.like_count or 0 }}</div>
+            <div class="video-stat-label">いいね</div>
+          </div>
+          <div>
+            <div class="video-stat-number">{{ v.comment_count or 0 }}</div>
+            <div class="video-stat-label">コメント</div>
+          </div>
+        </div>
+        <a
+          href="{{ url_for('video_detail', video_id=v.id) }}"
+          class="btn btn-small"
+          >詳細を見る</a
+        >
       </div>
+      {% endfor %}
     </div>
-    <div class="video-stats">
-      <div>
-        <div class="video-stat-number">{{ v.view_count or 0 }}</div>
-        <div class="video-stat-label">再生数</div>
+
+    {% if pagination and pagination.total_pages > 1 %}
+    <div class="pagination">
+      {% if pagination.has_prev %}
+      <a
+        href="{{ url_for('dashboard', page=pagination.prev_page) }}"
+        class="pagination-btn"
+      >
+        ← 前のページ
+      </a>
+      {% endif %}
+
+      <div class="pagination-pages">
+        {% for page_num in pagination.pages %} {% if page_num == pagination.page
+        %}
+        <span class="pagination-current">{{ page_num }}</span>
+        {% else %}
+        <a
+          href="{{ url_for('dashboard', page=page_num) }}"
+          class="pagination-link"
+        >
+          {{ page_num }}
+        </a>
+        {% endif %} {% endfor %}
       </div>
-      <div>
-        <div class="video-stat-number">{{ v.like_count or 0 }}</div>
-        <div class="video-stat-label">いいね</div>
-      </div>
-      <div>
-        <div class="video-stat-number">{{ v.comment_count or 0 }}</div>
-        <div class="video-stat-label">コメント</div>
-      </div>
+
+      {% if pagination.has_next %}
+      <a
+        href="{{ url_for('dashboard', page=pagination.next_page) }}"
+        class="pagination-btn"
+      >
+        次のページ →
+      </a>
+      {% endif %}
     </div>
-    <a href="{{ url_for('video_detail', video_id=v.id) }}" class="btn btn-small"
-      >詳細を見る</a
-    >
-  </div>
-  {% endfor %}
-</div>
-
-{% if pagination and pagination.total_pages > 1 %}
-<div class="pagination">
-  {% if pagination.has_prev %}
-  <a
-    href="{{ url_for('dashboard', page=pagination.prev_page) }}"
-    class="pagination-btn"
-  >
-    ← 前のページ
-  </a>
-  {% endif %}
-
-  <div class="pagination-pages">
-    {% for page_num in pagination.pages %} {% if page_num == pagination.page %}
-    <span class="pagination-current">{{ page_num }}</span>
-    {% else %}
-    <a href="{{ url_for('dashboard', page=page_num) }}" class="pagination-link">
-      {{ page_num }}
-    </a>
-    {% endif %} {% endfor %}
+    {% endif %} {% else %}
+    <div class="card empty-state">
+      <p class="empty-state-title">動画が見つかりませんでした</p>
+      <p class="empty-state-description">
+        ※ 公開動画がないか、動画が存在しない可能性があります
+      </p>
+    </div>
+    {% endif %}
   </div>
 
-  {% if pagination.has_next %}
-  <a
-    href="{{ url_for('dashboard', page=pagination.next_page) }}"
-    class="pagination-btn"
-  >
-    次のページ →
-  </a>
-  {% endif %}
+  <a href="{{ url_for('index') }}" class="back-link">← ホームへ戻る</a>
 </div>
-{% endif %} {% else %}
-<div class="card empty-state">
-  <p class="empty-state-title">動画が見つかりませんでした</p>
-  <p class="empty-state-description">
-    ※ 公開動画がないか、動画が存在しない可能性があります
-  </p>
-</div>
-{% endif %}
 
-<a href="{{ url_for('index') }}" class="back-link">← ホームへ戻る</a>
+<!-- ローディング表示 -->
+<div id="loading-overlay" class="loading-overlay" style="display: none">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>データを読み込み中...</p>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{{ url_for('static', filename='js/utils/globals.js') }}"></script>
+<script src="{{ url_for('static', filename='js/utils/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
