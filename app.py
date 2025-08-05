@@ -79,6 +79,10 @@ def create_app():
     def api_upload_video():
         return views.api_upload_video()
     
+    @app.route("/api/upload-draft", methods=["POST"])
+    def api_upload_draft():
+        return views.api_upload_draft()
+    
     # 定期的なキャッシュクリーンアップ
     @app.before_request
     def before_request():

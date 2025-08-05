@@ -20,6 +20,12 @@ block extra_css %}
       </li>
       <li>投稿は「自分だけ」の設定でのみ可能です</li>
     </ul>
+    <p><strong>投稿間隔について:</strong></p>
+    <ul>
+      <li>連続投稿は5分間の間隔が必要です</li>
+      <li>短時間での連続投稿はTikTokのスパム対策により制限されます</li>
+      <li>エラーが発生した場合は、数分間待ってから再度お試しください</li>
+    </ul>
   </div>
 
   {% if account_status %}
@@ -157,7 +163,11 @@ block extra_css %}
       <div class="form-actions">
         <button type="submit" id="upload-btn" class="btn btn-primary">
           <span class="btn-icon">📤</span>
-          <span class="btn-text">アップロード</span>
+          <span class="btn-text">直接投稿</span>
+        </button>
+        <button type="button" id="upload-draft-btn" class="btn btn-primary">
+          <span class="btn-icon">📝</span>
+          <span class="btn-text">下書き投稿</span>
         </button>
         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
           <span class="btn-icon">←</span>

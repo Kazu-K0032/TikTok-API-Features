@@ -115,6 +115,11 @@ function updateDashboardContent(userData) {
     }
 
     // 新しい統計情報を更新
+    const totalViewCount = document.getElementById("total-view-count");
+    if (totalViewCount) {
+      totalViewCount.textContent = user_info.total_view_count || 0;
+    }
+
     const shareCount = document.getElementById("share-count");
     if (shareCount) {
       shareCount.textContent = user_info.total_share_count || 0;

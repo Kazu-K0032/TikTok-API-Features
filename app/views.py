@@ -108,6 +108,8 @@ class Views:
 
             # 総シェア数
             total_share_count = sum(v.get('share_count', 0) or 0 for v in all_videos)
+            # 総再生数
+            total_view_count = sum(v.get('view_count', 0) or 0 for v in all_videos)
             # 平均エンゲージメント率
             avg_engagement_rate = calculate_average_engagement_rate(all_videos, profile.get('follower_count', 0))
 
@@ -133,6 +135,7 @@ class Views:
                                  users=all_users,
                                  current_user=current_user,
                                  total_share_count=total_share_count,
+                                 total_view_count=total_view_count,
                                  avg_engagement_rate=avg_engagement_rate)
             
         except requests.exceptions.RequestException as e:
@@ -256,6 +259,11 @@ class Views:
             # 動画リストを取得
             videos = get_video_list(user['access_token'], open_id, max_count=self.config.MAX_VIDEO_COUNT)
             
+            # 統計情報を計算
+            total_share_count = sum(v.get('share_count', 0) or 0 for v in videos)
+            total_view_count = sum(v.get('view_count', 0) or 0 for v in videos)
+            avg_engagement_rate = calculate_average_engagement_rate(videos, profile.get('follower_count', 0))
+            
             return jsonify({
                 'success': True,
                 'profile': profile,
@@ -263,7 +271,10 @@ class Views:
                 'user_info': {
                     'open_id': user['open_id'],
                     'display_name': user['display_name'],
-                    'avatar_url': user['avatar_url']
+                    'avatar_url': user['avatar_url'],
+                    'total_share_count': total_share_count,
+                    'total_view_count': total_view_count,
+                    'avg_engagement_rate': avg_engagement_rate
                 }
             })
             
@@ -465,52 +476,97 @@ class Views:
                              current_user=current_user)
     
     def api_upload_video(self):
-        """動画アップロードAPI"""
+        """動画アップロードAPI（直接投稿）"""
+        return self._handle_video_upload(is_draft=False)
+    
+    def api_upload_draft(self):
+        """動画下書き投稿API（TikTok下書き）"""
+        return self._handle_video_upload(is_draft=True)
+    
+    def _handle_video_upload(self, is_draft=False):
+        """動画アップロード処理（共通）"""
+        upload_type = "下書き投稿" if is_draft else "直接投稿"
+        self.logger.info(f"=== {upload_type}開始 ===")
+        
         # 認証チェック
         if not self.auth_service.is_authenticated():
+            self.logger.error(f"{upload_type}: 認証されていません")
             return jsonify({'success': False, 'error': '認証されていません'}), 401
         
         # 現在のユーザーを取得
         current_user = self.user_manager.get_current_user()
         if not current_user:
+            self.logger.error(f"{upload_type}: ユーザーが見つかりません")
             return jsonify({'success': False, 'error': 'ユーザーが見つかりません'}), 404
         
         # スコープチェック（簡易版）
         # 実際のスコープ確認はAPIレスポンスで行う
         token = current_user["access_token"]
+        self.logger.info(f"{upload_type}: トークン取得完了")
         
         try:
+            self.logger.info(f"{upload_type}: ファイル確認開始")
+            
             # ファイルの確認
             if 'video_file' not in request.files:
+                self.logger.error(f"{upload_type}: video_fileがリクエストに含まれていません")
                 return jsonify({'success': False, 'error': '動画ファイルが選択されていません'}), 400
             
             video_file = request.files['video_file']
             if video_file.filename == '':
+                self.logger.error(f"{upload_type}: 動画ファイル名が空です")
                 return jsonify({'success': False, 'error': '動画ファイルが選択されていません'}), 400
+            
+            # ファイルサイズの確認
+            video_file.seek(0, 2)  # ファイルの末尾に移動
+            file_size = video_file.tell()  # ファイルサイズを取得
+            video_file.seek(0)  # ファイルの先頭に戻す
+            
+            self.logger.info(f"{upload_type}: ファイル情報 - 名前: {video_file.filename}, サイズ: {file_size} bytes")
+            
+            if file_size == 0:
+                self.logger.error(f"{upload_type}: 動画ファイルサイズが0です")
+                return jsonify({'success': False, 'error': '動画ファイルが空です'}), 400
             
             # フォームデータの取得
             title = request.form.get('title', '').strip()
             if not title:
+                self.logger.error(f"{upload_type}: キャプションが入力されていません")
                 return jsonify({'success': False, 'error': 'キャプションを入力してください'}), 400
             
             # 未監査クライアントはSELF_ONLYのみ許可
             privacy_level = 'SELF_ONLY'
-            self.logger.info(f"未監査クライアントのため、プライバシー設定をSELF_ONLYに強制設定")
+            self.logger.info(f"{upload_type}: 未監査クライアントのため、プライバシー設定をSELF_ONLYに強制設定")
             disable_comment = request.form.get('disable_comment') == 'on'
             disable_duet = request.form.get('disable_duet') == 'on'
             disable_stitch = request.form.get('disable_stitch') == 'on'
             
-            self.logger.info(f"アップロード設定: privacy_level={privacy_level}, disable_comment={disable_comment}, disable_duet={disable_duet}, disable_stitch={disable_stitch}")
+            self.logger.info(f"{upload_type}: 設定 - privacy_level={privacy_level}, disable_comment={disable_comment}, disable_duet={disable_duet}, disable_stitch={disable_stitch}")
             
             # 一時ファイルとして保存
             import tempfile
             import os
             
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
-                video_file.save(temp_file.name)
-                temp_file_path = temp_file.name
+            self.logger.info(f"{upload_type}: 一時ファイル保存開始")
             
             try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
+                    video_file.save(temp_file.name)
+                    temp_file_path = temp_file.name
+                
+                # 保存されたファイルのサイズを確認
+                saved_file_size = os.path.getsize(temp_file_path)
+                self.logger.info(f"{upload_type}: 一時ファイル保存完了 - パス: {temp_file_path}, サイズ: {saved_file_size} bytes")
+                
+                if saved_file_size == 0:
+                    raise Exception("一時ファイルの保存に失敗しました")
+                    
+            except Exception as e:
+                self.logger.error(f"{upload_type}: 一時ファイル保存エラー: {e}")
+                return jsonify({'success': False, 'error': 'ファイルの保存に失敗しました'}), 500
+            
+            try:
+                self.logger.info(f"{upload_type}: 動画アップロード実行開始")
                 # 動画アップロード実行
                 success, message, publish_id = upload_video_complete(
                     access_token=token,
@@ -519,16 +575,19 @@ class Views:
                     privacy_level=privacy_level,
                     disable_comment=disable_comment,
                     disable_duet=disable_duet,
-                    disable_stitch=disable_stitch
+                    disable_stitch=disable_stitch,
+                    is_draft=is_draft
                 )
                 
                 if success:
+                    self.logger.info(f"{upload_type}: アップロード成功 - publish_id: {publish_id}")
                     return jsonify({
                         'success': True,
                         'message': message,
                         'publish_id': publish_id
                     })
                 else:
+                    self.logger.error(f"{upload_type}: アップロード失敗 - {message}")
                     return jsonify({
                         'success': False,
                         'error': message
@@ -538,12 +597,19 @@ class Views:
                 # 一時ファイルを削除
                 if os.path.exists(temp_file_path):
                     os.unlink(temp_file_path)
+                    self.logger.info(f"{upload_type}: 一時ファイル削除完了")
                     
         except Exception as e:
-            self.logger.error(f"動画アップロードエラー: {e}")
+            import traceback
+            self.logger.error(f"{upload_type}: 動画アップロードエラー: {e}")
+            self.logger.error(f"{upload_type}: エラーの詳細: {traceback.format_exc()}")
             return jsonify({
                 'success': False,
-                'error': f'アップロードエラー: {str(e)}'
+                'error': f'アップロードエラー: {str(e)}',
+                'debug_info': {
+                    'error_type': type(e).__name__,
+                    'error_message': str(e)
+                }
             }), 500
     
     def logout(self):
@@ -551,4 +617,6 @@ class Views:
         session.clear()
         # ユーザーマネージャーからも削除
         self.user_manager.clear_current_user()
-        return redirect(url_for("index")) 
+        return redirect(url_for("index"))
+    
+ 

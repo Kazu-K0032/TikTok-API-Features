@@ -270,8 +270,34 @@
   height: 100%;
   background: linear-gradient(90deg, #ff0050 0%, #e6004c 100%);
   border-radius: 6px;
-  transition: width 0.3s ease;
+  transition: width 0.5s ease;
   width: 0%;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .progress-text {
