@@ -98,7 +98,7 @@ TikTok API を使用してユーザープロフィール情報と投稿動画を
 #### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/your-username/tiktok-api-features.git
+git clone git@github.com:Kazu-K0032/TikTok-API-Features.git
 cd tiktok-api-features
 ```
 

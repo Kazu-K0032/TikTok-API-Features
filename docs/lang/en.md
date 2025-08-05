@@ -98,7 +98,7 @@ After adding an account and accessing the portal settings screen, configure the 
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/tiktok-api-features.git
+git clone git@github.com:Kazu-K0032/TikTok-API-Features.git
 cd tiktok-api-features
 ```
 
