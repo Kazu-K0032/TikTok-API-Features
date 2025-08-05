@@ -72,3 +72,21 @@ TikTok API を使用してユーザープロフィール情報と投稿動画を
   - 5 分間の投稿間隔制限
   - スパム対策エラーの自動検出
   - プライベートアカウント要件の確認
+
+## Sandbox の設定
+
+参考サイト: [TikTok for Developers アカウント作成方法](https://nfr-log.com/how-to_create_tiktokfordevelopers/#index_id2)
+
+アカウントを追加しポータル設定画面にアクセス出来たら、Sandbox 環境で以下のように設定してください
+
+<div style="display: flex; gap:8px; flex-wrap: wrap;">
+    <img src="./docs/images/sandbox_1.png" width="45%" />
+    <img src="./docs/images/sandbox_2.png" width="45%" />
+    <img src="./docs/images/sandbox_3.png" width="45%" />
+    <img src="./docs/images/sandbox_4.png" width="45%" />
+    <img src="./docs/images/sandbox_5.png" width="45%" />
+    <img src="./docs/images/sandbox_6.png" width="45%" />
+    <img src="./docs/images/sandbox_7.png" width="45%" />
+    <img src="./docs/images/sandbox_8.png" width="45%" />
+    <img src="./docs/images/sandbox_9.png" width="45%" />
+</div>
