@@ -73,7 +73,7 @@ TikTok API を使用してユーザープロフィール情報と投稿動画を
   - スパム対策エラーの自動検出
   - プライベートアカウント要件の確認
 
-## Sandbox の設定
+## Sandboxの設定
 
 参考サイト: [TikTok for Developers アカウント作成方法](https://nfr-log.com/how-to_create_tiktokfordevelopers/#index_id2)
 

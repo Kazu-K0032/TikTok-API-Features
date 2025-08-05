@@ -1,6 +1,6 @@
 # TikTok API Features
 
-[日本語](../README.md) | English
+[日本語](../../README.md) | English
 
 An application that retrieves and displays user profile information and posted videos using the TikTok API.
 
