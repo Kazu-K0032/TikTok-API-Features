@@ -43,26 +43,17 @@ block extra_css %}
       {% else %}
       <p>❌ <strong>アカウントがプライベート設定ではありません</strong></p>
       <p>TikTokアプリでアカウントをプライベート設定に変更してください</p>
-      {% endif %} {% if account_status.privacy_options %}
-      <p><strong>利用可能なプライバシー設定:</strong></p>
-      <ul>
-        {% for option in account_status.privacy_options %}
-        <li>{{ option }}</li>
-        {% endfor %}
-      </ul>
-
-      <p><strong>判定基準:</strong></p>
-      <ul>
-        <li>
-          ✅ プライベートアカウント:
-          <code>FOLLOWER_OF_CREATOR</code
-          >が含まれ、<code>PUBLIC_TO_EVERYONE</code>が含まれない
-        </li>
-        <li>
-          ❌ パブリックアカウント: <code>PUBLIC_TO_EVERYONE</code>が含まれる
-        </li>
-      </ul>
       {% endif %}
+
+      <div class="sandbox-notice">
+        <p><strong>⚠️ Sandbox環境について:</strong></p>
+        <p>
+          Sandbox環境では、プライベートアカウントでなければ動画を投稿できません。
+        </p>
+        <p>
+          TikTokアプリで「設定」→「プライバシー」→「アカウント」を「プライベート」に設定してください。
+        </p>
+      </div>
     </div>
     {% endif %}
   </div>
@@ -103,8 +94,12 @@ block extra_css %}
         <select id="privacy-level" name="privacy_level" required>
           <option value="">プライバシー設定を選択してください</option>
           <option value="SELF_ONLY">自分だけ</option>
-          <option value="MUTUAL_FOLLOW_FRIENDS">相互フォロー</option>
-          <option value="PUBLIC_TO_EVERYONE">公開</option>
+          <option value="MUTUAL_FOLLOW_FRIENDS" disabled>
+            相互フォロー (未監査アプリでは利用不可)
+          </option>
+          <option value="PUBLIC_TO_EVERYONE" disabled>
+            公開 (未監査アプリでは利用不可)
+          </option>
         </select>
         <div class="form-help">
           <p>

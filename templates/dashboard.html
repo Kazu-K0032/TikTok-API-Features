@@ -98,15 +98,15 @@ extra_css %}
       <span class="btn-text">動画をアップロード</span>
     </a>
   </div>
-  <div id="videos-container">
-    {% if videos %} {% if pagination_summary %}
-    <div class="pagination-summary">
-      <p>{{ pagination_summary }}</p>
-    </div>
-    {% endif %}
 
+  <!-- ページネーションコンテナ（動画アップロードボタンの下に配置） -->
+  <div id="pagination-container" style="display: none">
+    <!-- ページネーションはJavaScriptで動的に生成 -->
+  </div>
+
+  <div id="videos-container">
     <div class="video-grid" id="video-grid">
-      {% for v in videos %}
+      {% if videos %} {% for v in videos %}
       <div class="video-card">
         {% if v.best_image_url %}
         <div class="video-thumbnail">
@@ -147,54 +147,16 @@ extra_css %}
           >詳細を見る</a
         >
       </div>
-      {% endfor %}
-    </div>
-
-    {% if pagination and pagination.total_pages > 1 %}
-    <div class="pagination">
-      {% if pagination.has_prev %}
-      <a
-        href="{{ url_for('dashboard', page=pagination.prev_page) }}"
-        class="pagination-btn"
-      >
-        ← 前のページ
-      </a>
-      {% endif %}
-
-      <div class="pagination-pages">
-        {% for page_num in pagination.pages %} {% if page_num == pagination.page
-        %}
-        <span class="pagination-current">{{ page_num }}</span>
-        {% else %}
-        <a
-          href="{{ url_for('dashboard', page=page_num) }}"
-          class="pagination-link"
-        >
-          {{ page_num }}
-        </a>
-        {% endif %} {% endfor %}
+      {% endfor %} {% else %}
+      <div class="card empty-state">
+        <p class="empty-state-title">動画が見つかりませんでした</p>
+        <p class="empty-state-description">
+          ※ 公開動画がないか、動画が存在しない可能性があります
+        </p>
       </div>
-
-      {% if pagination.has_next %}
-      <a
-        href="{{ url_for('dashboard', page=pagination.next_page) }}"
-        class="pagination-btn"
-      >
-        次のページ →
-      </a>
       {% endif %}
     </div>
-    {% endif %} {% else %}
-    <div class="card empty-state">
-      <p class="empty-state-title">動画が見つかりませんでした</p>
-      <p class="empty-state-description">
-        ※ 公開動画がないか、動画が存在しない可能性があります
-      </p>
-    </div>
-    {% endif %}
   </div>
-
-  <a href="{{ url_for('index') }}" class="back-link">← ホームへ戻る</a>
 </div>
 
 <!-- ローディング表示 -->
