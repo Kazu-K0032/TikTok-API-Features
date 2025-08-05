@@ -34,4 +34,8 @@ class Config:
     MAX_VIDEO_COUNT = int(os.getenv("MAX_VIDEO_COUNT", "20"))
     
     # 複数ユーザー管理設定
-    MAX_USERS_PER_SESSION = int(os.getenv("MAX_USERS_PER_SESSION", "5")) 
+    MAX_USERS_PER_SESSION = int(os.getenv("MAX_USERS_PER_SESSION", "5"))
+    
+    # ファイルアップロード設定
+    MAX_VIDEO_FILE_SIZE = int(os.getenv("MAX_VIDEO_FILE_SIZE", "100")) * 1024 * 1024  # 100MB
+    SUPPORTED_VIDEO_TYPES = ["video/mp4", "video/avi", "video/mov", "video/wmv"] 

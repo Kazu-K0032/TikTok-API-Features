@@ -32,47 +32,20 @@ def get_creator_info(access_token: str) -> Dict[str, Any]:
         response.raise_for_status()
         response_data = response.json()
         
-        # レスポンスの詳細をログに出力
-        logger.info(f"クリエイター情報レスポンス全体: {response_data}")
-        
         # レスポンスの妥当性を検証
         if 'data' not in response_data:
             logger.error("クリエイター情報レスポンスに'data'フィールドがありません")
-            logger.error(f"利用可能なフィールド: {list(response_data.keys())}")
             raise Exception("クリエイター情報のレスポンス形式が不正です")
         
         # TikTok APIの仕様に従って、dataフィールドが直接クリエイター情報を含む場合がある
         if 'creator_info' in response_data['data']:
-            logger.info("クリエイター情報の取得に成功（最新情報）")
             return response_data
         elif 'creator_avatar_url' in response_data['data']:
             # dataフィールドが直接クリエイター情報を含む場合
-            logger.info("クリエイター情報の取得に成功（最新情報）- 直接形式")
             return response_data
         else:
             logger.error("クリエイター情報レスポンスに'creator_info'またはクリエイター情報フィールドがありません")
-            logger.error(f"dataフィールドの内容: {response_data['data']}")
             raise Exception("クリエイター情報のレスポンス形式が不正です")
-        
-        # クリエイター情報をログに出力
-        if 'data' in response and 'creator_info' in response['data']:
-            creator_info = response['data']['creator_info']
-            logger.info(f"クリエイター情報: {creator_info}")
-            
-            # プライバシー設定オプションを確認
-            if 'privacy_level_options' in creator_info:
-                logger.info(f"利用可能なプライバシー設定: {creator_info['privacy_level_options']}")
-                
-                # アカウントがプライベートかどうかを確認
-                # 正しいプライベートアカウント判定
-                is_private_account = 'PUBLIC_TO_EVERYONE' not in creator_info['privacy_level_options'] and 'FOLLOWER_OF_CREATOR' in creator_info['privacy_level_options']
-                
-                if is_private_account:
-                    logger.info("✅ アカウントはプライベート設定です")
-                else:
-                    logger.warning("⚠️ アカウントがプライベート設定ではありません")
-                    logger.warning("TikTokアプリでアカウントをプライベート設定に変更してください")
-                    logger.info(f"現在のプライバシーオプション: {creator_info['privacy_level_options']}")
         
         return response
         
@@ -100,10 +73,16 @@ def initialize_video_upload(
     privacy_level: str = "SELF_ONLY",  # 未監査クライアントはSELF_ONLYのみ対応
     disable_comment: bool = False,
     disable_duet: bool = False,
-    disable_stitch: bool = False
+    disable_stitch: bool = False,
+    is_draft: bool = False  # 下書き投稿かどうか
 ) -> Dict[str, Any]:
     """動画投稿リクエストを初期化"""
-    url = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+    if is_draft:
+        url = "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
+        logger.info("下書き投稿モードで動画アップロードを初期化")
+    else:
+        url = "https://open.tiktokapis.com/v2/post/publish/video/init/"
+        logger.info("直接投稿モードで動画アップロードを初期化")
     
     # TikTok APIの推奨チャンクサイズ（10MB = 10,000,000 bytes）
     # ただし、動画サイズが推奨チャンクサイズより小さい場合は動画サイズをチャンクサイズとする
@@ -222,8 +201,6 @@ def upload_video_file_chunked(upload_url: str, video_file_path: str) -> bool:
         if total_chunk_count == 0 and file_size > 0:
             total_chunk_count = 1 # At least one chunk for a non-empty video
 
-        logger.info(f"チャンクアップロード実行: ファイルサイズ: {file_size} bytes, チャンクサイズ: {chunk_size} bytes, チャンク数: {total_chunk_count}")
-
         with open(video_file_path, 'rb') as f:
             for chunk_index in range(total_chunk_count):
                 start_byte = chunk_index * chunk_size
@@ -238,7 +215,9 @@ def upload_video_file_chunked(upload_url: str, video_file_path: str) -> bool:
                 
                 # チャンクをアップロード
                 if not upload_video_chunk(upload_url, chunk_data, content_range):
+                    logger.error(f"チャンク {chunk_index + 1} のアップロードに失敗")
                     return False
+        
         return True
     except Exception as e:
         logger.error(f"動画ファイルチャンクアップロードエラー: {e}")
@@ -290,14 +269,15 @@ def upload_video_complete(
     privacy_level: str = "SELF_ONLY",  # 未監査クライアントはSELF_ONLYのみ対応
     disable_comment: bool = False,
     disable_duet: bool = False,
-    disable_stitch: bool = False
+    disable_stitch: bool = False,
+    is_draft: bool = False  # 下書き投稿かどうか
 ) -> Tuple[bool, str, Optional[str]]:
     """動画アップロードの完全なプロセスを実行"""
+    upload_type = "下書き投稿" if is_draft else "直接投稿"
+    
     try:
         # 1. クリエイター情報を取得（最新情報を常に取得）
-        logger.info("動画アップロード時: 最新のクリエイター情報を取得中...")
         creator_info = get_creator_info(access_token)
-        logger.info("動画アップロード時: クリエイター情報取得完了")
         
         # アカウントのプライバシー設定を確認
         if 'data' in creator_info:
@@ -317,7 +297,6 @@ def upload_video_complete(
                 if not is_private_account:
                     error_msg = "アカウントがプライベート設定ではありません。TikTokアプリで「設定」→「プライバシー」→「アカウント」を「プライベート」に変更してください。"
                     logger.error(error_msg)
-                    logger.error(f"現在のプライバシーオプション: {creator_info_data['privacy_level_options']}")
                     return False, error_msg, None
         
         # 2. 動画ファイルサイズを取得
@@ -331,7 +310,8 @@ def upload_video_complete(
             privacy_level=privacy_level,
             disable_comment=disable_comment,
             disable_duet=disable_duet,
-            disable_stitch=disable_stitch
+            disable_stitch=disable_stitch,
+            is_draft=is_draft
         )
         
         # TikTok APIのレスポンス形式に従って、dataフィールドから取得
@@ -342,36 +322,25 @@ def upload_video_complete(
             publish_id = init_response.get('publish_id')
             upload_url = init_response.get('upload_url')
         
-        logger.info(f"初期化レスポンス詳細: {init_response}")
-        logger.info(f"取得したpublish_id: {publish_id}")
-        logger.info(f"取得したupload_url: {upload_url}")
-        
         if not publish_id or not upload_url:
-            logger.error(f"アップロード初期化に失敗: publish_id={publish_id}, upload_url={upload_url}")
+            logger.error(f"{upload_type}: アップロード初期化に失敗: publish_id={publish_id}, upload_url={upload_url}")
             return False, "アップロード初期化に失敗しました", None
         
         # 4. 動画ファイルをチャンクでアップロード（公式ドキュメント準拠）
-        logger.info("動画ファイルチャンクアップロード開始")
         upload_success = upload_video_file_chunked(upload_url, video_file_path)
         
         if not upload_success:
-            logger.error("動画ファイルのアップロードに失敗しました")
+            logger.error(f"{upload_type}: 動画ファイルのアップロードに失敗しました")
             return False, "動画ファイルのアップロードに失敗しました", publish_id
         
-        logger.info("✅ 動画アップロードプロセスが正常に完了しました")
-        
-        logger.info("動画ファイルチャンクアップロード完了")
-        
         # 5. 投稿ステータスを確認（非同期処理のため少し待機）
-        logger.info("投稿ステータス確認開始（3秒待機）")
         import time
         time.sleep(3)  # TikTok APIの非同期処理を待つ
         
         try:
             status_response = get_post_status(access_token, publish_id)
-            logger.info(f"投稿ステータス: {status_response}")
         except Exception as e:
-            logger.warning(f"投稿ステータス取得エラー（アップロードは成功）: {e}")
+            logger.warning(f"{upload_type}: 投稿ステータス取得エラー（アップロードは成功）: {e}")
         
         # 動画リンクとプロフィールリンクを生成
         username = creator_info_data.get('creator_username', '')
@@ -399,7 +368,10 @@ def upload_video_complete(
         
         profile_link = f"https://www.tiktok.com/@{username}"
         
-        success_message = f"動画アップロードが完了しました。"
+        if is_draft:
+            success_message = f"動画をTikTokの下書きに保存しました。\nTikTokアプリの通知を確認して、動画を編集・投稿してください。\nプロフィール: {profile_link}"
+        else:
+            success_message = f"動画アップロードが完了しました。\nプロフィール: {profile_link}"
         
         return True, success_message, publish_id
         

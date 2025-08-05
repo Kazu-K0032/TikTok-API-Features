@@ -2,7 +2,187 @@
  * ダッシュボードページ用JavaScript
  */
 
-// SPA風のユーザー切り替え機能
+// ページネーション状態管理
+const PaginationManager = {
+  currentPage: 1,
+  itemsPerPage: 6,
+  totalItems: 0,
+  totalPages: 0,
+  currentVideos: [],
+
+  /**
+   * ページネーションを初期化
+   * @param {Array} videos - 全動画配列
+   */
+  init(videos) {
+    this.currentVideos = videos || [];
+    this.totalItems = this.currentVideos.length;
+    this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+    this.currentPage = 1;
+  },
+
+  /**
+   * 現在のページの動画を取得
+   * @returns {Array} 現在のページの動画配列
+   */
+  getCurrentPageVideos() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.currentVideos.slice(startIndex, endIndex);
+  },
+
+  /**
+   * 指定ページに移動
+   * @param {number} page - 移動先ページ番号
+   */
+  goToPage(page) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updateDisplay();
+    }
+  },
+
+  /**
+   * 前のページに移動
+   */
+  goToPreviousPage() {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  },
+
+  /**
+   * 次のページに移動
+   */
+  goToNextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  },
+
+  /**
+   * 表示を更新
+   */
+  updateDisplay() {
+    const currentVideos = this.getCurrentPageVideos();
+    updateVideoGrid(currentVideos);
+    updatePaginationDisplay();
+  },
+
+  /**
+   * ページネーション表示を更新
+   */
+  updatePaginationDisplay() {
+    const paginationContainer = document.getElementById("pagination-container");
+    if (!paginationContainer) return;
+
+    if (this.totalPages <= 1) {
+      paginationContainer.style.display = "none";
+      return;
+    }
+
+    paginationContainer.style.display = "block";
+
+    const paginationHTML = this.generatePaginationHTML();
+    paginationContainer.innerHTML = paginationHTML;
+
+    // イベントリスナーを追加
+    this.addPaginationEventListeners();
+  },
+
+  /**
+   * ページネーションHTMLを生成
+   * @returns {string} ページネーションHTML
+   */
+  generatePaginationHTML() {
+    const startItem = (this.currentPage - 1) * this.itemsPerPage + 1;
+    const endItem = Math.min(
+      this.currentPage * this.itemsPerPage,
+      this.totalItems
+    );
+
+    let paginationHTML = `
+      <div class="pagination-summary">
+        ${startItem}-${endItem} / ${this.totalItems} 件表示
+      </div>
+      <div class="pagination">
+        <button class="pagination-btn" data-action="prev" ${
+          this.currentPage === 1 ? "disabled" : ""
+        }>
+          ← 前へ
+        </button>
+        <div class="pagination-pages">
+    `;
+
+    // ページ番号を表示（最大5ページまで）
+    const maxVisiblePages = 5;
+    let startPage = Math.max(
+      1,
+      this.currentPage - Math.floor(maxVisiblePages / 2)
+    );
+    let endPage = Math.min(this.totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const isCurrent = i === this.currentPage;
+      paginationHTML += `
+        <a href="#" class="pagination-link ${
+          isCurrent ? "pagination-current" : ""
+        }" data-page="${i}">
+          ${i}
+        </a>
+      `;
+    }
+
+    paginationHTML += `
+        </div>
+        <button class="pagination-btn" data-action="next" ${
+          this.currentPage === this.totalPages ? "disabled" : ""
+        }>
+          次へ →
+        </button>
+      </div>
+    `;
+
+    return paginationHTML;
+  },
+
+  /**
+   * ページネーションイベントリスナーを追加
+   */
+  addPaginationEventListeners() {
+    // 前へ/次へボタン
+    document.querySelectorAll(".pagination-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const action = btn.dataset.action;
+        if (action === "prev") {
+          this.goToPreviousPage();
+        } else if (action === "next") {
+          this.goToNextPage();
+        }
+      });
+    });
+
+    // ページ番号リンク
+    document.querySelectorAll(".pagination-link").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        const page = parseInt(link.dataset.page);
+        this.goToPage(page);
+      });
+    });
+  },
+};
+
+/**
+ * ユーザーを切り替える（SPA風の機能）
+ * @param {string} openId - 切り替え先ユーザーのOpen ID
+ * @returns {Promise<void>}
+ */
 async function switchUser(openId) {
   try {
     // ローディング表示
@@ -30,7 +210,13 @@ async function switchUser(openId) {
   }
 }
 
-// ダッシュボードコンテンツを更新
+/**
+ * ダッシュボードコンテンツを更新
+ * @param {Object} userData - ユーザーデータオブジェクト
+ * @param {Object} userData.profile - プロフィール情報
+ * @param {Array} userData.videos - 動画リスト
+ * @param {Object} userData.user_info - ユーザー統計情報
+ */
 function updateDashboardContent(userData) {
   const { profile, videos, user_info } = userData;
 
@@ -115,6 +301,11 @@ function updateDashboardContent(userData) {
     }
 
     // 新しい統計情報を更新
+    const totalViewCount = document.getElementById("total-view-count");
+    if (totalViewCount) {
+      totalViewCount.textContent = user_info.total_view_count || 0;
+    }
+
     const shareCount = document.getElementById("share-count");
     if (shareCount) {
       shareCount.textContent = user_info.total_share_count || 0;
@@ -126,16 +317,20 @@ function updateDashboardContent(userData) {
     }
   }
 
-  // 動画リストを更新
+  // 動画リストを更新（ページネーション機能付き）
   if (videos) {
-    updateVideoGrid(videos);
+    PaginationManager.init(videos);
+    PaginationManager.updateDisplay();
   }
 
   // ヘッダーのアクティブ状態を更新
   updateHeaderActiveState(user_info.open_id);
 }
 
-// 動画グリッドを更新
+/**
+ * 動画グリッドを更新
+ * @param {Array} videos - 動画オブジェクトの配列
+ */
 function updateVideoGrid(videos) {
   const videoGrid = document.getElementById("video-grid");
   if (!videoGrid) return;
@@ -214,7 +409,17 @@ function updateVideoGrid(videos) {
   videoGrid.innerHTML = videoCards;
 }
 
-// ヘッダーのアクティブ状態を更新
+/**
+ * ページネーション表示を更新
+ */
+function updatePaginationDisplay() {
+  PaginationManager.updatePaginationDisplay();
+}
+
+/**
+ * ヘッダーのアクティブ状態を更新
+ * @param {string} openId - アクティブにするユーザーのOpen ID
+ */
 function updateHeaderActiveState(openId) {
   // すべてのユーザーアイテムからactiveクラスを削除
   document.querySelectorAll(".user-item").forEach((item) => {
@@ -228,7 +433,9 @@ function updateHeaderActiveState(openId) {
   }
 }
 
-// ローディング表示
+/**
+ * ローディングオーバーレイを表示
+ */
 function showLoading() {
   const overlay = document.getElementById("loading-overlay");
   if (overlay) {
@@ -236,9 +443,61 @@ function showLoading() {
   }
 }
 
+/**
+ * ローディングオーバーレイを非表示
+ */
 function hideLoading() {
   const overlay = document.getElementById("loading-overlay");
   if (overlay) {
     overlay.style.display = "none";
   }
 }
+
+/**
+ * ページ読み込み時の初期化処理
+ */
+document.addEventListener("DOMContentLoaded", function () {
+  // 初期データでページネーションを設定
+  const videoGrid = document.getElementById("video-grid");
+  if (videoGrid && videoGrid.children.length > 0) {
+    // 既存の動画カードからデータを抽出
+    const videoCards = Array.from(videoGrid.querySelectorAll(".video-card"));
+    const videos = videoCards.map((card) => {
+      const title =
+        card.querySelector(".video-title")?.textContent || "タイトルなし";
+      const id = card.querySelector(".video-id code")?.textContent || "";
+      const date =
+        card
+          .querySelector(".video-date")
+          ?.textContent.replace("投稿日:", "")
+          .trim() || "";
+      const viewCount = parseInt(
+        card.querySelector(".video-stats .video-stat-number")?.textContent ||
+          "0"
+      );
+      const likeCount = parseInt(
+        card.querySelectorAll(".video-stats .video-stat-number")[1]
+          ?.textContent || "0"
+      );
+      const commentCount = parseInt(
+        card.querySelectorAll(".video-stats .video-stat-number")[2]
+          ?.textContent || "0"
+      );
+      const imageUrl = card.querySelector(".video-cover")?.src || "";
+
+      return {
+        id: id,
+        title: title,
+        formatted_create_time: date,
+        view_count: viewCount,
+        like_count: likeCount,
+        comment_count: commentCount,
+        best_image_url: imageUrl,
+      };
+    });
+
+    // ページネーションを初期化
+    PaginationManager.init(videos);
+    PaginationManager.updateDisplay();
+  }
+});

@@ -46,7 +46,7 @@
 /* 統計情報グリッド */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
   margin-bottom: 30px;
 }
@@ -134,6 +134,8 @@
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   column-gap: 20px;
   row-gap: 30px;
+  justify-items: center;
+  justify-content: center;
 }
 
 .video-card {
@@ -146,6 +148,9 @@
   flex-direction: column;
   transition: all 0.3s ease;
   cursor: pointer;
+  width: 100%;
+  max-width: 350px;
+  min-height: 500px;
 }
 
 .video-card:hover {
@@ -233,8 +238,9 @@
 .pagination-summary {
   text-align: center;
   margin-bottom: 20px;
-  color: var(--text-light);
+  color: #666;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .pagination {
@@ -242,24 +248,35 @@
   justify-content: center;
   align-items: center;
   gap: 15px;
-  margin-top: 30px;
+  margin: 30px 0;
   padding: 20px 0;
 }
 
 .pagination-btn {
   display: inline-block;
-  padding: 8px 16px;
-  background-color: var(--primary-color);
+  padding: 10px 20px;
+  background-color: #ff0050;
   color: white;
   text-decoration: none;
-  border-radius: 20px;
+  border: none;
+  border-radius: 8px;
   font-size: 14px;
-  transition: var(--transition);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.pagination-btn:hover {
-  background-color: var(--secondary-color);
+.pagination-btn:hover:not(:disabled) {
+  background-color: #e6004c;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 0, 80, 0.3);
+}
+
+.pagination-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .pagination-pages {
@@ -271,27 +288,41 @@
 .pagination-link {
   display: inline-block;
   padding: 8px 12px;
-  color: var(--text-color);
+  color: #333;
   text-decoration: none;
-  border: 1px solid var(--border-color);
+  border: 1px solid #ddd;
   border-radius: 6px;
-  transition: var(--transition);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 36px;
+  text-align: center;
 }
 
 .pagination-link:hover {
-  background-color: var(--primary-color);
+  background-color: #ff0050;
   color: white;
-  border-color: var(--primary-color);
+  border-color: #ff0050;
+  transform: translateY(-1px);
 }
 
 .pagination-current {
   display: inline-block;
   padding: 8px 12px;
-  background-color: var(--primary-color);
+  background-color: #ff0050;
   color: white;
-  border: 1px solid var(--primary-color);
+  border: 1px solid #ff0050;
   border-radius: 6px;
   font-weight: bold;
+  font-size: 14px;
+  min-width: 36px;
+  text-align: center;
+}
+
+/* ページネーションコンテナ */
+#pagination-container {
+  margin: 20px 0;
+  padding: 0;
 }
 
 /* ローディング表示 */

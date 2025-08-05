@@ -21,8 +21,18 @@ def setup_logging() -> None:
         handlers=handlers
     )
     
-    # WerkzeugのINFOログを抑制
-    logging.getLogger('werkzeug').setLevel(logging.WARNING)
+    # Werkzeugのログを完全に抑制
+    werkzeug_logger = logging.getLogger('werkzeug')
+    werkzeug_logger.setLevel(logging.ERROR)
+    werkzeug_logger.disabled = True
+    
+    # urllib3のログも抑制（HTTPリクエストの詳細ログ）
+    urllib3_logger = logging.getLogger('urllib3')
+    urllib3_logger.setLevel(logging.WARNING)
+    
+    # requestsのログも抑制
+    requests_logger = logging.getLogger('requests')
+    requests_logger.setLevel(logging.WARNING)
 
 def get_logger(name: str) -> logging.Logger:
     """指定された名前のロガーを取得"""

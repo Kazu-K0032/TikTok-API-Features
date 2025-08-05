@@ -4,7 +4,7 @@ from app.auth_service import AuthService
 from app.services.get_profile import get_user_profile
 from app.services.get_video_list import get_video_list, format_create_time
 from app.services.get_video_details import get_video_details
-from app.services.pagination import paginate_videos, get_pagination_summary
+
 from app.services.user_manager import UserManager
 from app.utils import get_logger, validate_token
 from app.config import Config
@@ -15,6 +15,8 @@ class Views:
     """ビューコントローラー"""
     
     def __init__(self):
+        from app.config import Config
+        self.config = Config()
         self.auth_service = AuthService()
         self.user_manager = UserManager()
         self.logger = get_logger(__name__)
@@ -108,15 +110,10 @@ class Views:
 
             # 総シェア数
             total_share_count = sum(v.get('share_count', 0) or 0 for v in all_videos)
+            # 総再生数
+            total_view_count = sum(v.get('view_count', 0) or 0 for v in all_videos)
             # 平均エンゲージメント率
             avg_engagement_rate = calculate_average_engagement_rate(all_videos, profile.get('follower_count', 0))
-
-            # ページネーション処理
-            page = request.args.get('page', 1, type=int)
-            per_page = 6  # 1ページあたり6件表示
-            
-            pagination_info = paginate_videos(all_videos, page=page, per_page=per_page)
-            pagination_summary = get_pagination_summary(pagination_info)
             
             # 全ユーザー情報を取得
             all_users = self.user_manager.get_users()
@@ -127,12 +124,11 @@ class Views:
             
             return render_template('dashboard.html', 
                                  profile=profile, 
-                                 videos=pagination_info['videos'],
-                                 pagination=pagination_info,
-                                 pagination_summary=pagination_summary,
+                                 videos=all_videos,  # 全動画を渡す（フロントエンドでページネーション処理）
                                  users=all_users,
                                  current_user=current_user,
                                  total_share_count=total_share_count,
+                                 total_view_count=total_view_count,
                                  avg_engagement_rate=avg_engagement_rate)
             
         except requests.exceptions.RequestException as e:
@@ -256,6 +252,11 @@ class Views:
             # 動画リストを取得
             videos = get_video_list(user['access_token'], open_id, max_count=self.config.MAX_VIDEO_COUNT)
             
+            # 統計情報を計算
+            total_share_count = sum(v.get('share_count', 0) or 0 for v in videos)
+            total_view_count = sum(v.get('view_count', 0) or 0 for v in videos)
+            avg_engagement_rate = calculate_average_engagement_rate(videos, profile.get('follower_count', 0))
+            
             return jsonify({
                 'success': True,
                 'profile': profile,
@@ -263,7 +264,10 @@ class Views:
                 'user_info': {
                     'open_id': user['open_id'],
                     'display_name': user['display_name'],
-                    'avatar_url': user['avatar_url']
+                    'avatar_url': user['avatar_url'],
+                    'total_share_count': total_share_count,
+                    'total_view_count': total_view_count,
+                    'avg_engagement_rate': avg_engagement_rate
                 }
             })
             
@@ -348,16 +352,8 @@ class Views:
         
         try:
             # クリエイター情報を取得してアカウントのプライバシー設定をチェック
-            # 最新情報を常に取得するため、毎回APIを呼び出し
             from app.services.video_upload import get_creator_info
-            
-            # アップロードページ表示時: 最新のクリエイター情報を取得中
             creator_info_response = get_creator_info(token)
-            # アップロードページ表示時: クリエイター情報取得完了
-            
-            # クリエイター情報の詳細をログに出力
-            # === クリエイター情報詳細 ===
-            self.logger.info(f"レスポンス全体: {creator_info_response}")
             
             # アカウントのプライバシー設定を確認
             if 'data' in creator_info_response:
@@ -369,58 +365,23 @@ class Views:
                     creator_info = creator_info_response['data']
                 else:
                     self.logger.warning("クリエイター情報の形式が不正です")
-                    self.logger.warning(f"dataフィールドの内容: {creator_info_response['data']}")
                     creator_info = {}
-                
-                self.logger.info(f"クリエイター情報: {creator_info}")
-                
-                # 各フィールドを個別にログ出力
-                if 'creator_avatar_url' in creator_info:
-                    self.logger.info(f"アバターURL: {creator_info['creator_avatar_url']}")
-                if 'creator_username' in creator_info:
-                    self.logger.info(f"ユーザー名: {creator_info['creator_username']}")
-                if 'creator_nickname' in creator_info:
-                    self.logger.info(f"ニックネーム: {creator_info['creator_nickname']}")
-                if 'privacy_level_options' in creator_info:
-                    privacy_options = creator_info['privacy_level_options']
-                    self.logger.info(f"プライバシー設定オプション: {privacy_options}")
-                if 'comment_disabled' in creator_info:
-                    self.logger.info(f"コメント無効: {creator_info['comment_disabled']}")
-                if 'duet_disabled' in creator_info:
-                    self.logger.info(f"デュエット無効: {creator_info['duet_disabled']}")
-                if 'stitch_disabled' in creator_info:
-                    self.logger.info(f"ステッチ無効: {creator_info['stitch_disabled']}")
-                if 'max_video_post_duration_sec' in creator_info:
-                    self.logger.info(f"最大動画投稿時間: {creator_info['max_video_post_duration_sec']}秒")
                 
                 # プライベートアカウント判定
                 if 'privacy_level_options' in creator_info:
                     privacy_options = creator_info['privacy_level_options']
                     is_private_account = 'PUBLIC_TO_EVERYONE' not in privacy_options and 'FOLLOWER_OF_CREATOR' in privacy_options
                     
-                    self.logger.info("=== プライベートアカウント判定 ===")
-                    self.logger.info(f"PUBLIC_TO_EVERYONE が含まれる: {'PUBLIC_TO_EVERYONE' in privacy_options}")
-                    self.logger.info(f"FOLLOWER_OF_CREATOR が含まれる: {'FOLLOWER_OF_CREATOR' in privacy_options}")
-                    self.logger.info(f"判定結果 (プライベート): {is_private_account}")
-                    
-                    if is_private_account:
-                        # ✅ アップロードページ表示時: アカウントはプライベート設定です
-                        pass
-                    else:
+                    if not is_private_account:
                         self.logger.warning("⚠️ アップロードページ表示時: アカウントがプライベート設定ではありません")
                         self.logger.warning("TikTokアプリでアカウントをプライベート設定に変更してください")
-                        self.logger.info(f"現在のプライバシーオプション: {privacy_options}")
                 else:
                     self.logger.warning("プライバシー設定オプションが取得できませんでした")
             else:
                 self.logger.warning("クリエイター情報の形式が不正です")
-                self.logger.warning(f"レスポンス構造: {list(creator_info_response.keys()) if isinstance(creator_info_response, dict) else 'Not a dict'}")
-            
-            # === クリエイター情報詳細終了 ===
                 
         except Exception as e:
             self.logger.error(f"アップロードページ表示時: クリエイター情報取得エラー: {e}")
-            self.logger.error(f"エラータイプ: {type(e).__name__}")
             import traceback
             self.logger.error(f"エラー詳細: {traceback.format_exc()}")
             # エラーが発生してもページは表示する
@@ -465,50 +426,90 @@ class Views:
                              current_user=current_user)
     
     def api_upload_video(self):
-        """動画アップロードAPI"""
+        """動画アップロードAPI（直接投稿）"""
+        return self._handle_video_upload(is_draft=False)
+    
+    def api_upload_draft(self):
+        """動画下書き投稿API（TikTok下書き）"""
+        return self._handle_video_upload(is_draft=True)
+    
+    def _handle_video_upload(self, is_draft=False):
+        """動画アップロード処理（共通）"""
+        upload_type = "下書き投稿" if is_draft else "直接投稿"
+        
         # 認証チェック
         if not self.auth_service.is_authenticated():
+            self.logger.error(f"{upload_type}: 認証されていません")
             return jsonify({'success': False, 'error': '認証されていません'}), 401
         
         # 現在のユーザーを取得
         current_user = self.user_manager.get_current_user()
         if not current_user:
+            self.logger.error(f"{upload_type}: ユーザーが見つかりません")
             return jsonify({'success': False, 'error': 'ユーザーが見つかりません'}), 404
         
-        # スコープチェック（簡易版）
-        # 実際のスコープ確認はAPIレスポンスで行う
         token = current_user["access_token"]
         
         try:
             # ファイルの確認
             if 'video_file' not in request.files:
+                self.logger.error(f"{upload_type}: video_fileがリクエストに含まれていません")
                 return jsonify({'success': False, 'error': '動画ファイルが選択されていません'}), 400
             
             video_file = request.files['video_file']
             if video_file.filename == '':
+                self.logger.error(f"{upload_type}: 動画ファイル名が空です")
                 return jsonify({'success': False, 'error': '動画ファイルが選択されていません'}), 400
+            
+            # ファイルサイズの確認
+            video_file.seek(0, 2)
+            file_size = video_file.tell()
+            video_file.seek(0)
+            
+            if file_size == 0:
+                self.logger.error(f"{upload_type}: 動画ファイルサイズが0です")
+                return jsonify({'success': False, 'error': '動画ファイルが空です'}), 400
+            
+            # ファイルサイズ制限チェック
+            if file_size > self.config.MAX_VIDEO_FILE_SIZE:
+                self.logger.error(f"{upload_type}: ファイルサイズが制限を超えています: {file_size} bytes")
+                return jsonify({'success': False, 'error': f'ファイルサイズが大きすぎます。{self.config.MAX_VIDEO_FILE_SIZE // (1024*1024)}MB以下にしてください。'}), 400
+            
+            # ファイル形式チェック
+            if video_file.content_type not in self.config.SUPPORTED_VIDEO_TYPES:
+                self.logger.error(f"{upload_type}: サポートされていないファイル形式: {video_file.content_type}")
+                return jsonify({'success': False, 'error': 'サポートされていないファイル形式です。MP4、AVI、MOV、WMV形式のみ対応しています。'}), 400
             
             # フォームデータの取得
             title = request.form.get('title', '').strip()
             if not title:
+                self.logger.error(f"{upload_type}: キャプションが入力されていません")
                 return jsonify({'success': False, 'error': 'キャプションを入力してください'}), 400
             
             # 未監査クライアントはSELF_ONLYのみ許可
             privacy_level = 'SELF_ONLY'
-            self.logger.info(f"未監査クライアントのため、プライバシー設定をSELF_ONLYに強制設定")
             disable_comment = request.form.get('disable_comment') == 'on'
             disable_duet = request.form.get('disable_duet') == 'on'
             disable_stitch = request.form.get('disable_stitch') == 'on'
-            
-            self.logger.info(f"アップロード設定: privacy_level={privacy_level}, disable_comment={disable_comment}, disable_duet={disable_duet}, disable_stitch={disable_stitch}")
-            
+
             # 一時ファイルとして保存
             import tempfile
             import os
             
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
-                video_file.save(temp_file.name)
-                temp_file_path = temp_file.name
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
+                    video_file.save(temp_file.name)
+                    temp_file_path = temp_file.name
+                
+                # 保存されたファイルのサイズを確認
+                saved_file_size = os.path.getsize(temp_file_path)
+                
+                if saved_file_size == 0:
+                    raise Exception("一時ファイルの保存に失敗しました")
+                    
+            except Exception as e:
+                self.logger.error(f"{upload_type}: 一時ファイル保存エラー: {e}")
+                return jsonify({'success': False, 'error': 'ファイルの保存に失敗しました'}), 500
             
             try:
                 # 動画アップロード実行
@@ -519,7 +520,8 @@ class Views:
                     privacy_level=privacy_level,
                     disable_comment=disable_comment,
                     disable_duet=disable_duet,
-                    disable_stitch=disable_stitch
+                    disable_stitch=disable_stitch,
+                    is_draft=is_draft
                 )
                 
                 if success:
@@ -529,6 +531,7 @@ class Views:
                         'publish_id': publish_id
                     })
                 else:
+                    self.logger.error(f"{upload_type}: アップロード失敗 - {message}")
                     return jsonify({
                         'success': False,
                         'error': message
@@ -540,10 +543,16 @@ class Views:
                     os.unlink(temp_file_path)
                     
         except Exception as e:
-            self.logger.error(f"動画アップロードエラー: {e}")
+            import traceback
+            self.logger.error(f"{upload_type}: 動画アップロードエラー: {e}")
+            self.logger.error(f"{upload_type}: エラーの詳細: {traceback.format_exc()}")
             return jsonify({
                 'success': False,
-                'error': f'アップロードエラー: {str(e)}'
+                'error': f'アップロードエラー: {str(e)}',
+                'debug_info': {
+                    'error_type': type(e).__name__,
+                    'error_message': str(e)
+                }
             }), 500
     
     def logout(self):
@@ -551,4 +560,6 @@ class Views:
         session.clear()
         # ユーザーマネージャーからも削除
         self.user_manager.clear_current_user()
-        return redirect(url_for("index")) 
+        return redirect(url_for("index"))
+    
+ 
