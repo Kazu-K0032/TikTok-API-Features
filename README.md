@@ -73,7 +73,9 @@ TikTok API を使用してユーザープロフィール情報と投稿動画を
   - スパム対策エラーの自動検出
   - プライベートアカウント要件の確認
 
-## Sandboxの設定
+## 導入手順
+
+### Sandbox の設定
 
 参考サイト: [TikTok for Developers アカウント作成方法](https://nfr-log.com/how-to_create_tiktokfordevelopers/#index_id2)
 
@@ -90,3 +92,56 @@ TikTok API を使用してユーザープロフィール情報と投稿動画を
     <img src="./docs/images/sandbox_8.png" width="45%" />
     <img src="./docs/images/sandbox_9.png" width="45%" />
 </div>
+
+### リポジトリのセットアップ
+
+#### 1. リポジトリのクローン
+
+```bash
+git clone https://github.com/your-username/tiktok-api-features.git
+cd tiktok-api-features
+```
+
+#### 2. 仮想環境の作成とアクティベート
+
+```bash
+# Python仮想環境を作成
+python -m venv venv
+
+# 仮想環境をアクティベート
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+```
+
+#### 3. 依存関係のインストール
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 4. 環境変数の設定
+
+```bash
+# .envファイルを作成
+cp env.example .env
+```
+
+#### 5. アプリケーションの実行
+
+```bash
+python app.py
+```
+
+#### 6. ブラウザでアクセス
+
+```
+http://localhost:3456
+```
+
+#### 注意事項
+
+- Python 3.8 以上が必要です
+- TikTok for Developers アカウントとアプリの設定が必要です
+- 環境変数の設定は必須です（詳細は「Sandbox の設定」を参照）

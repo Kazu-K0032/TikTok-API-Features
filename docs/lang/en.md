@@ -72,3 +72,81 @@ An application that retrieves and displays user profile information and posted v
   - 5-minute posting interval restriction
   - Automatic spam prevention error detection
   - Private account requirement verification
+
+## Setup Instructions
+
+### Sandbox Configuration
+
+Reference site: [How to Create TikTok for Developers Account](https://nfr-log.com/how-to_create_tiktokfordevelopers/#index_id2)
+
+After adding an account and accessing the portal settings screen, configure the Sandbox environment as follows:
+
+<div style="display: flex; gap:8px; flex-wrap: wrap;">
+    <img src="../images/sandbox_1.png" width="45%" />
+    <img src="../images/sandbox_2.png" width="45%" />
+    <img src="../images/sandbox_3.png" width="45%" />
+    <img src="../images/sandbox_4.png" width="45%" />
+    <img src="../images/sandbox_5.png" width="45%" />
+    <img src="../images/sandbox_6.png" width="45%" />
+    <img src="../images/sandbox_7.png" width="45%" />
+    <img src="../images/sandbox_8.png" width="45%" />
+    <img src="../images/sandbox_9.png" width="45%" />
+</div>
+
+### Repository Setup
+
+#### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/tiktok-api-features.git
+cd tiktok-api-features
+```
+
+#### 2. Create and Activate Virtual Environment
+
+```bash
+# Create Python virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Windows
+venv\Scripts\activate
+# macOS/Linux
+source venv/bin/activate
+```
+
+#### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 4. Configure Environment Variables
+
+```bash
+# Create .env file
+cp env.example .env
+
+# Edit .env file and add required settings
+# TIKTOK_CLIENT_KEY=your_client_key
+# TIKTOK_CLIENT_SECRET=your_client_secret
+# SECRET_KEY=your_secret_key
+```
+
+#### 5. Run the Application
+
+```bash
+python app.py
+```
+
+#### 6. Access via Browser
+
+```
+http://localhost:3456
+```
+
+#### Notes
+
+- Python 3.8 or higher is required
+- TikTok for Developers account and app configuration is required
+- Environment variable configuration is mandatory (see "Sandbox Configuration" for details)
